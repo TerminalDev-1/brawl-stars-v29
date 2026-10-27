@@ -6,6 +6,11 @@ import uuid
 
 from protocol import Reader, Writer
 
+GEM_GRAB_MAPS = {7}
+SOLO_SHOWDOWN_MAPS = {13}  # locations.csv Survival1 (Skull Creek)
+DUO_SHOWDOWN_MAPS = {28, 34, 35, 36, 37, 109}  # enabled SurvivalTeam locations
+SHOWDOWN_MAPS = SOLO_SHOWDOWN_MAPS | DUO_SHOWDOWN_MAPS
+
 
 @dataclass
 class BotBattle:
@@ -17,6 +22,12 @@ class BotBattle:
     started_at: int = field(default_factory=lambda: int(time.time()))
     completed: bool = False
     participants: list = field(default_factory=list)
+    owned: tuple = (0,)
+    rank: int = 0
+
+    @property
+    def showdown(self):
+        return self.map_id in SHOWDOWN_MAPS
 
     @property
     def roster(self):
@@ -56,10 +67,17 @@ def start_loading(player, battle):
 
 
 def read_result(payload, battle):
+    """Validate a native match result. The event played is taken from the result."""
     r = Reader(payload)
     result, mode, rank = r.vint(), r.vint(), r.vint()
     table, map_id, players = r.vint(), r.vint(), r.vint()
-    if result not in (0, 1, 2) or table != 15 or map_id != battle.map_id or players != 6:
+    showdown = map_id in SHOWDOWN_MAPS
+    if table != 15 or map_id not in GEM_GRAB_MAPS | SHOWDOWN_MAPS:
+        raise ValueError('invalid result map')
+    if showdown:
+        if not 2 <= players <= 10 or not 1 <= rank <= players or result not in (0, 1, 2):
+            raise ValueError('invalid showdown result')
+    elif result not in (0, 1, 2) or players != 6:
         raise ValueError('invalid result for the active bot battle')
     participants = []
     for index in range(players):
@@ -72,31 +90,36 @@ def read_result(payload, battle):
         skin = r.vint() if skin_table else None
         team, local = r.vint(), r.vint()
         name = r.string()
-        if not 0 <= brawler <= 40 or local not in (0, 1) or team not in (0, 1):
+        if not 0 <= brawler <= 40 or local not in (0, 1) or not 0 <= team < (players if showdown else 2):
             raise ValueError('invalid bot participant')
         if not name or len(name) > 40:
             raise ValueError('invalid bot participant name')
         participants.append({'brawler': brawler, 'skin': skin, 'local': bool(local),
                              'team': team, 'name': name if local else 'Bot ' + name})
     humans = [p for p in participants if p['local']]
-    if len(humans) != 1 or humans[0]['brawler'] != battle.brawler:
-        raise ValueError('result must contain exactly the active human character')
-    if any(sum(p['team'] == team for p in participants) != 3 for team in (0, 1)):
+    if len(humans) != 1 or humans[0]['brawler'] not in battle.owned:
+        raise ValueError('result must contain exactly one owned human character')
+    if not showdown and any(sum(p['team'] == team for p in participants) != 3 for team in (0, 1)):
         raise ValueError('bot battle requires two teams of three')
     if r.offset != len(payload):
         raise ValueError('trailing battle result data')
     battle.participants = participants
+    battle.map_id = map_id
+    battle.brawler = humans[0]['brawler']
+    battle.rank = rank if showdown else 0
     return result
 
 
 def battle_result(player, battle, result, progress):
     w = Writer()
-    w.values(1, result, 0, progress['delta'], *([0] * 13))
+    # Game-mode type 2 reports the Showdown placement instead of win/loss.
+    w.values(2 if battle.showdown else 1, battle.rank if battle.showdown else result,
+             0, progress['delta'], *([0] * 13))
     for flag in [False, False, False, False, True, False, False]:
         w.boolean(flag)
     w.vint(-1)  # No championship challenge; -64 resolves to invalid native data.
     w.boolean(False)
-    w.vint(6)
+    w.vint(len(battle.participants))
     human_team = next(p['team'] for p in battle.participants if p['local'])
     for participant in battle.participants:
         brawler = participant['brawler']

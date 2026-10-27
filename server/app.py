@@ -11,6 +11,7 @@ from messages import home_data, login_ok
 from battles import BotBattle, battle_result, read_result, start_loading
 from protocol import MAX_PACKET, Reader, Writer, packet, recv_exact
 from storage import AccountStore
+import trophy_road
 
 ROOT = Path(__file__).resolve().parent.parent
 LOG = logging.getLogger('v29')
@@ -76,7 +77,8 @@ class Client(socketserver.BaseRequestHandler):
                     if self.battle is not None and not self.battle.completed:
                         LOG.info('session=%s BATTLE_ALREADY_ACTIVE match=%s', self.session, self.battle.match_id)
                         continue
-                    self.battle = BotBattle(self.player['id'], self.player['brawler'])
+                    self.battle = BotBattle(self.player['id'], self.player['brawler'],
+                                            owned=tuple(self.player.get('unlocked', [0])))
                     self.server.store.begin_battle(self.player['id'], self.battle.match_id,
                                                    self.battle.map_id, self.battle.started_at)
                     LOG.info('session=%s BOT_BATTLE_START player=%d match=%s map=%d',
@@ -88,13 +90,15 @@ class Client(socketserver.BaseRequestHandler):
                         LOG.warning('session=%s BATTLE_RESULT_IGNORED no active match', self.session)
                         continue
                     result = read_result(payload, self.battle)
-                    progress = self.server.store.complete_battle(self.player['id'], self.battle.match_id, result)
+                    progress = self.server.store.complete_battle(self.player['id'], self.battle.match_id, result,
+                                                                 self.battle.brawler, self.battle.rank)
                     if progress is None:
                         continue
                     self.battle.completed = True
                     self.player = progress['player']
-                    LOG.info('session=%s BOT_BATTLE_COMPLETE match=%s result=%d trophies_delta=%d',
-                             self.session, self.battle.match_id, result, progress['delta'])
+                    LOG.info('session=%s BOT_BATTLE_COMPLETE match=%s map=%d result=%d rank=%d trophies_delta=%d',
+                             self.session, self.battle.match_id, self.battle.map_id, result,
+                             self.battle.rank, progress['delta'])
                     self.send(23456, battle_result(self.player, self.battle, result, progress))
                 elif kind == 14106:
                     self.abandon_battle()
@@ -109,6 +113,8 @@ class Client(socketserver.BaseRequestHandler):
                     self.player['name'] = name
                     self.server.store.save(self.player)
                     self.home()
+                elif kind == 14102:
+                    self.client_commands(payload)
                 else:
                     LOG.debug('session=%s UNIMPLEMENTED type=%d', self.session, kind)
         except (ConnectionError, TimeoutError, OSError) as error:
@@ -117,6 +123,39 @@ class Client(socketserver.BaseRequestHandler):
             LOG.warning('session=%s REJECT reason=%s', self.session, error)
         except Exception:
             LOG.exception('session=%s SERVER_ERROR', self.session)
+
+    def client_commands(self, payload):
+        """EndClientTurn: a batch of home-screen commands."""
+        r = Reader(payload)
+        r.vint()
+        tick, _checksum, count = r.vint(), r.vint(), r.vint()
+        for _ in range(count):
+            command = r.vint()
+            if command == 203:  # Client acknowledging a delivery the server sent.
+                LOG.debug('session=%s DELIVERY_ACK tick=%d', self.session, tick)
+                return
+            if command != 517:
+                # Bodies differ per command; without a decoder the rest can't be read.
+                LOG.debug('session=%s UNIMPLEMENTED command=%d tick=%d', self.session, command, tick)
+                return
+            r.vint(), r.vint(), r.vint(), r.vint()  # Command tick and executor.
+            track = r.vint()
+            if track != 6:
+                LOG.info('session=%s CLAIM_IGNORED track=%d', self.session, track)
+                continue
+            claimed = trophy_road.claim(self.player)
+            if claimed is None:
+                LOG.warning('session=%s TROPHY_ROAD_NOT_CLAIMABLE counter=%d highest=%d', self.session,
+                            self.player.get('trophy_road', 1),
+                            self.player.get('highest_trophies', self.player['trophies']))
+                self.home()  # Resynchronize the client's view of Trophy Road.
+                continue
+            index, box, items = claimed
+            self.server.store.save(self.player)
+            LOG.info('session=%s TROPHY_ROAD_CLAIM player=%d milestone=%d box=%d items=%s',
+                     self.session, self.player['id'], index, box,
+                     [(item, brawler, amount) for item, brawler, amount in items])
+            self.send(24111, trophy_road.delivery_command(box, items, track, index + 2))
 
     def finish(self):
         self.abandon_battle()

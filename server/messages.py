@@ -1,6 +1,9 @@
 """Minimal v29 login and home-state serialization, without battle simulation."""
 import time
 from protocol import Writer
+from trophy_road import UNLOCK_CARDS
+
+GEM_GRAB_MAP, SHOWDOWN_MAP = 7, 13  # locations.csv: Hard Rock Mine, Skull Creek
 
 
 def login_ok(player, token):
@@ -41,7 +44,8 @@ def home_data(p):
     w = Writer()
     # Daily data: progression, cosmetics, timers, shop, selected character.
     best = p.get('highest_trophies', p['trophies'])
-    w.values(int(time.time()), 0, p['trophies'], best, best, 1, 220 + p.get('experience', 0))
+    w.values(int(time.time()), 0, p['trophies'], best, best, p.get('trophy_road', 1),
+             220 + p.get('experience', 0))
     w.reference(28, p['icon'])
     w.reference(43, p['name_color'])
     w.values(0, 1)
@@ -71,8 +75,10 @@ def home_data(p):
     w.vint(0)  # emotes
     # Regional configuration and event slots.
     w.values(int(time.time()), 100, 10, 30, 3, 80, 10, 40, 1500, 500, 50, 999900, 0)
-    w.values(2, 0, 1, 1)
-    event(w, 1, 7)
+    w.values(3, 0, 1, 2)  # event slot IDs
+    w.vint(2)
+    event(w, 1, GEM_GRAB_MAP)
+    event(w, 2, SHOWDOWN_MAP)
     w.vint(0)  # upcoming events
     for values in [(20, 35, 75, 140, 290, 480, 800, 1250), (1, 2, 3, 4, 5, 10, 15, 20),
                    (10, 30, 80), (6, 20, 60), (10,), (1000,)]:
@@ -94,14 +100,28 @@ def home_data(p):
     w.string(p['name'])
     w.vint(1)
     w.integer(0)
-    w.values(8, 5)
-    for table, row, amount in [(23, 0, 1), (5, 1, 0), (5, 8, p['gold']), (5, 9, 0), (5, 10, 0)]:
+    owned = p.get('unlocked', [0])
+    trophies = brawler_trophies(p)
+    points = p.get('power_points', {})
+    w.values(8, len(owned) + 4)
+    for brawler in owned:
+        w.reference(23, UNLOCK_CARDS[brawler])
+        w.vint(1)
+    for table, row, amount in [(5, 1, 0), (5, 8, p['gold']), (5, 9, 0), (5, 10, 0)]:
         w.reference(table, row)
         w.vint(amount)
-    for amount in [p['trophies'], best, None, 0, 0, None, None]:
-        w.vint(0 if amount is None else 1)
-        if amount is not None:
-            w.reference(16, p['brawler'])
+    for values in [trophies, trophies, None, {b: points.get(str(b), 0) for b in owned},
+                   {b: 0 for b in owned}, None, None]:
+        values = values or {}
+        w.vint(len(values))
+        for brawler, amount in values.items():
+            w.reference(16, brawler)
             w.vint(amount)
     w.values(p['gems'], 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, int(time.time()))
     return w.bytes()
+
+
+def brawler_trophies(p):
+    """Per-brawler trophies; accounts from before this existed keep all on Shelly."""
+    stored = p.get('brawler_trophies') or {'0': p['trophies']}
+    return {b: stored.get(str(b), 0) for b in p.get('unlocked', [0])}

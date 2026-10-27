@@ -11,6 +11,7 @@ import time
 from pathlib import Path
 
 DEFAULT_THEME = 15  # v29: Welcome to Starr Park / Gift Shop.
+SHOWDOWN_TROPHIES = (10, 8, 7, 6, 4, 2, 2, 1, 0, 0)  # by placement, low-trophy tier
 
 
 class AccountStore:
@@ -105,7 +106,7 @@ class AccountStore:
             db.commit()
             self.backup()
 
-    def complete_battle(self, player_id, match_id, result):
+    def complete_battle(self, player_id, match_id, result, brawler=0, rank=0):
         if result not in (0, 1, 2):
             raise ValueError('invalid bot battle result')
         with self.lock, self.connect() as db:
@@ -119,13 +120,23 @@ class AccountStore:
             state = json.loads(row['state'])
             old_trophies = state['trophies']
             old_experience = state.get('experience', 0)
-            delta = 8 if result == 0 else 0
-            experience = 20 if result == 0 else 10
+            if rank:  # Showdown placement; no trophy loss in bot matches.
+                delta = SHOWDOWN_TROPHIES[rank - 1] if rank <= len(SHOWDOWN_TROPHIES) else 0
+                experience = 20 if rank <= 4 else 10
+                win = rank <= 4
+            else:
+                delta = 8 if result == 0 else 0
+                experience = 20 if result == 0 else 10
+                win = result == 0
             state['trophies'] += delta
+            per_brawler = state.get('brawler_trophies') or {'0': old_trophies}
+            per_brawler[str(brawler)] = per_brawler.get(str(brawler), 0) + delta
+            state['brawler_trophies'] = per_brawler
+            state['brawler'] = brawler
             state['highest_trophies'] = max(state.get('highest_trophies', 0), state['trophies'])
             state['experience'] = old_experience + experience
             state['battles_played'] = state.get('battles_played', 0) + 1
-            state['bot_wins'] = state.get('bot_wins', 0) + int(result == 0)
+            state['bot_wins'] = state.get('bot_wins', 0) + int(win)
             db.execute('UPDATE players SET state=? WHERE id=?', (json.dumps(state), player_id))
             db.execute('UPDATE bot_battles SET finished_at=?, result=?, trophies_delta=? WHERE match_id=?',
                        (int(time.time()), result, delta, match_id))

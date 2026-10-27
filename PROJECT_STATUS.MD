@@ -31,6 +31,18 @@ Last updated: 2026-10-27.
   20 experience; losses and draws give 10 experience without a trophy penalty.
 - Leaving early returns home without a reward. Duplicate completed results
   cannot award progression twice. Another battle can be started after returning.
+- Trophy Road rewards can be collected (2026-10-27). The client's claim command
+  (517 inside message 14102) is answered with a delivery (24111 / command 203)
+  using the v29 Trophy Road table (milestones.csv track 6): Brawl/Big/Mega Box
+  contents (coins, power points, sometimes gems), Trophy Road brawlers (Nita,
+  Colt, Bull, ...), coins, power points, token doublers, and the event unlocks.
+  Progress, unlocked brawlers, power points, and per-brawler trophies are saved
+  and sent back in home data after a relog. Claims beyond the player's highest
+  trophies are refused and the home screen is resynchronized.
+- Solo Showdown (Skull Creek) is the second event slot next to Gem Grab. The
+  client unlocks it at the 30-trophy Trophy Road step, as in the original game.
+  Matches run with nine bots; the result screen shows the placement, and rewards
+  are 10/8/7/6/4/2/2/1/0/0 trophies by rank with no trophy loss.
 - SQLite stores accounts, match history, and progression. Atomic JSON snapshots
   support recovery when the SQLite database is absent.
 - debuglog.txt records connection, login, protocol, and match diagnostics,
@@ -38,6 +50,21 @@ Last updated: 2026-10-27.
   and raw account payloads are not logged.
 
 ## Verification evidence
+
+Verified on 2026-10-27 for Trophy Road and Showdown (server-only change; the
+v0.2.0 APK is unchanged):
+
+- All 19 automated server tests passed, including 8 new tests for claim order,
+  unlock steps, delivery encoding against the captured native claim, home data
+  with extra brawlers, Showdown result parsing, and Showdown rewards.
+- On the tablet (against a scratch copy of the account database): the Brawl Box
+  at 5 trophies opened with coins and Shelly power points, Nita unlocked at 10,
+  the box at 20 opened, and the Showdown unlock at 30 opened Choose Event with
+  Showdown listed. Coins and the claimed steps persisted across a relog.
+- A Solo Showdown match ran with bots, ended on "You are #1! +10", and Proceed
+  returned to the lobby with the new trophy total.
+- The real account was not used for these claims; its three earned rewards are
+  still waiting to be collected.
 
 Verified on 2026-10-27 for v0.2.0:
 
@@ -76,10 +103,12 @@ an internet-hosted public backend.
 
 - Battles use native local bot simulation; Python does not simulate real-time
   combat. PvP and player matchmaking are not implemented.
-- The supported playable flow is the starter Shelly inventory and the Gem Grab
-  event. Most other home commands, shop/progression reward claims, and broader
-  game systems remain unimplemented. A Trophy Road reward prompt may appear as
-  trophies increase; reward collection is not part of the verified flow.
+- Playable events are Gem Grab and Solo Showdown. Duo Showdown results are
+  accepted by the server but have not been tested on the device.
+- Other home commands (brawler selection, shop, Brawl Pass, upgrades, profile)
+  are still unimplemented; they are logged as UNIMPLEMENTED command/type entries.
+  Trophies are credited to the brawler reported in the match result.
+- Power points are stored and shown, but upgrading a brawler is not implemented.
 - The experimental stock native-library profile still has its original
   startup failure. Use the matched reference libraries and companion
   initialization described in client_patch/README.md.
