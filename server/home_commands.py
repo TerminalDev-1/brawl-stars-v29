@@ -7,6 +7,7 @@ persists. Box purchases also need the server to send the contents.
 """
 from dataclasses import dataclass
 
+import brawl_pass
 import brawlers
 import shop
 import trophy_road
@@ -26,6 +27,8 @@ BODIES = {
     521: (VINT,),                    # Buy coins with gems (pack index).
     522: (SCID,),                    # Brawler seen (removes the "new" badge).
     525: (SCID,),                    # Select brawler.
+    534: (),                         # Buy Brawl Pass.
+    536: (),                         # Buy one Brawl Pass tier.
 }
 
 # Shop box index -> (gem cost, box type). Matches the home data prices.
@@ -70,6 +73,20 @@ class Result:
         self.skin = None  # Skin selected in this batch; it belongs to the brawler selected with it.
 
 
+def claim_brawl_pass(player, track, fields, result):
+    index = fields[3]
+    claimed = brawl_pass.claim(player, track, index)
+    if claimed is None:
+        result.notes.append(f'brawl pass claim refused track={track} fields={fields}')
+        result.resync = True
+        return
+    box, items = claimed
+    result.changed = True
+    result.notes.append(f'brawl pass claim track={track} tier={index} fields={fields} box={box} items={items}')
+    result.replies.append((24111, trophy_road.delivery_command(box, items, track, index + 2,
+                                                             brawl_pass.SEASON)))
+
+
 def finish(player, result):
     """Apply batch-level effects once every command in the batch has run."""
     if result.skin is not None:
@@ -91,8 +108,11 @@ def apply(player, command, result):
     kind, fields = command.kind, command.fields
     if kind == 517:
         track = fields[0]
+        if track in (brawl_pass.FREE, brawl_pass.PREMIUM):
+            claim_brawl_pass(player, track, fields, result)
+            return
         if track != 6:
-            result.notes.append(f'claim ignored track={track}')
+            result.notes.append(f'claim ignored track={track} fields={fields}')
             return
         claimed = trophy_road.claim(player)
         if claimed is None:
@@ -168,6 +188,20 @@ def apply(player, command, result):
         result.changed = True
         result.notes.append(f'buy offer={fields[0]} items={items}')
         result.replies.append((24111, trophy_road.delivery_command(trophy_road.SINGLE_REWARD, items)))
+    elif kind == 534:
+        if brawl_pass.buy_pass(player):
+            result.changed = True
+            result.notes.append('buy brawl pass')
+        else:
+            result.notes.append('brawl pass purchase refused')
+            result.resync = True
+    elif kind == 536:
+        if brawl_pass.buy_tier(player):
+            result.changed = True
+            result.notes.append(f"buy brawl pass tier tokens={brawl_pass.state(player)['tokens']}")
+        else:
+            result.notes.append('brawl pass tier purchase refused')
+            result.resync = True
     elif kind == 515:
         pass  # Viewing the shop changes nothing on the server.
     else:

@@ -15,8 +15,12 @@ boxes, new Brawlers like Nita, coins and power points. Showdown unlocks at
 menu you can pick any Brawler you own and upgrade it with coins and power
 points. The Shop sells Big and Mega Boxes, the Token Doubler and a coin
 pack for gems, plus daily deals (power points for coins) that refresh at
-midnight. Gem packs cost real money in the original game and don't work
-here. Brawl Pass, clubs, friends and chat aren't built yet.
+midnight, plus a free Colette. Colette is buffed to a flat 1000 damage per
+shot instead of her percent-of-health attack. The Brawl Pass works: battles
+earn tokens, and you can claim free rewards, buy the pass for 169 gems and
+claim the premium track (Poco Starr, Colette, Trixie Colette). Gem packs
+cost real money in the original game and don't work here. Clubs, friends,
+chat and Brawl Pass quests aren't built yet.
 
 The lobby uses v29's pink/purple Gift Shop theme (theme 15), matching the
 [Welcome to Starr Park update](https://supercell.com/en/games/brawlstars/blog/release-notes/welcome-to-starr-park/).

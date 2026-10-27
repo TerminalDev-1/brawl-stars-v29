@@ -49,6 +49,20 @@ Last updated: 2026-10-27.
   points for owned brawlers for coins, refresh at midnight, and show Purchased
   once bought. Purchases the player can't afford are refused and the home
   screen is resent.
+- Colette, Brawl Pass and Showdown fixes (2026-10-27):
+  - Client build applies game-data edits from client_patch/balance.py: Colette's
+    main attack does a flat 1000 damage (the percent-of-health damage is
+    removed) and her hidden flag is cleared so she appears in the collection.
+  - The shop has a FREE COLETTE! offer until the player owns her. She never
+    drops from boxes.
+  - Brawl Pass season 2 (Starr Park / Colette) from milestones.csv: battles give
+    tokens (Token Doubler doubles them), free and premium tiers can be claimed
+    once each (deliveries carry season 2, which the client requires), the pass
+    costs 169 gems (534) and single tiers 30 gems (536). Colette is the premium
+    tier-15 reward; Poco Starr and Trixie Colette skins are recorded as owned.
+  - Showdown results below 2nd place were rejected (the client reports the
+    placement in the result field too). They are now accepted, and the results
+    screen shows the brawler's own trophies and the Token Doubler balance.
 - Solo Showdown (Skull Creek) is the second event slot next to Gem Grab. The
   client unlocks it at the 30-trophy Trophy Road step, as in the original game.
   Matches run with nine bots; the result screen shows the placement, and rewards
@@ -60,6 +74,20 @@ Last updated: 2026-10-27.
   and raw account payloads are not logged.
 
 ## Verification evidence
+
+Verified on 2026-10-27 for Colette, Brawl Pass and the Showdown fix (APK rebuilt
+and installed on the tablet; not published as a release):
+
+- All 38 automated server tests passed, including 10 new tests (captured Brawl
+  Pass claim, premium rules, tier purchase, token doubling, free Colette offer,
+  and the Colette data edit on a copy of the assets).
+- On the tablet (scratch copy of the account): claimed FREE COLETTE!, Colette
+  appeared as NEW with Brawlers 3/39, her stats show Damage 1000, and in the
+  training ground one shot took a 4000-health dummy to exactly 3000.
+- Played Solo Showdown with Colette: 4th place was accepted with +6 trophies and
+  +16 tokens. Claimed free Brawl Pass tiers (Big Box), bought the pass for 169
+  gems and claimed a premium Mega Box; claimed tiers show checkmarks after relog.
+- The real account logged in afterwards with the Brawl Pass at tier 1.
 
 Verified on 2026-10-27 for the Brawlers menu and Shop (server-only change):
 
@@ -127,8 +155,10 @@ an internet-hosted public backend.
   combat. PvP and player matchmaking are not implemented.
 - Playable events are Gem Grab and Solo Showdown. Duo Showdown results are
   accepted by the server but have not been tested on the device.
-- Brawl Pass, profile, club, friends, chat, skins beyond defaults, gadgets and
-  star powers are still unimplemented; unknown commands are logged as
+- Brawl Pass quests, pins and selecting the pass skins are not implemented;
+  the 249-gem Brawl Pass bundle and buying tiers were not tested on the device.
+  Colette's Super still uses its percent damage. Profile, club, friends, chat,
+  gadgets and star powers are still unimplemented; unknown commands are logged as
   UNIMPLEMENTED with their bytes. Trophies are credited to the brawler reported
   in the match result. Gem packs (real money) cannot be bought.
 - A Gem Grab or Showdown match played with a brawler other than Shelly has not

@@ -75,8 +75,9 @@ def read_result(payload, battle):
     if table != 15 or map_id not in GEM_GRAB_MAPS | SHOWDOWN_MAPS:
         raise ValueError('invalid result map')
     if showdown:
-        if not 2 <= players <= 10 or not 1 <= rank <= players or result not in (0, 1, 2):
-            raise ValueError('invalid showdown result')
+        # Showdown reports the placement in both the result and rank fields.
+        if not 2 <= players <= 10 or not 1 <= rank <= players or not 0 <= result <= players:
+            raise ValueError(f'invalid showdown result result={result} rank={rank} players={players}')
     elif result not in (0, 1, 2) or players != 6:
         raise ValueError('invalid result for the active bot battle')
     participants = []
@@ -114,7 +115,9 @@ def battle_result(player, battle, result, progress):
     w = Writer()
     # Game-mode type 2 reports the Showdown placement instead of win/loss.
     w.values(2 if battle.showdown else 1, battle.rank if battle.showdown else result,
-             0, progress['delta'], *([0] * 13))
+             progress.get('tokens', 0), progress['delta'], 0, progress.get('doubled', 0),
+             0, progress.get('doubler_left', 0), *([0] * 9))
+    # Tokens, trophies, power play, doubled tokens, double-token event, doubler left.
     for flag in [False, False, False, False, True, False, False]:
         w.boolean(flag)
     w.vint(-1)  # No championship challenge; -64 resolves to invalid native data.
@@ -133,7 +136,7 @@ def battle_result(player, battle, result, progress):
             w.reference(29, participant['skin'])
         else:
             w.vint(0)
-        w.values(progress['old_trophies'] if human else 0, 0, 1)
+        w.values(progress.get('old_brawler_trophies', progress['old_trophies']) if human else 0, 0, 1)
         w.boolean(human)
         if human:
             w.long(player['id'])
@@ -142,7 +145,8 @@ def battle_result(player, battle, result, progress):
                  43000000 + (player['name_color'] if human else 0), 0)
     w.values(1, 0, progress['experience'])  # Experience reward entries.
     w.vint(0)  # Rank/level-up bonuses.
-    w.values(2, 1, progress['old_trophies'], progress['old_trophies'],
+    brawler_trophies = progress.get('old_brawler_trophies', progress['old_trophies'])
+    w.values(2, 1, brawler_trophies, brawler_trophies,
              5, 220 + progress['old_experience'], 0)
     w.reference(28, player['icon'])
     w.boolean(False)  # Return home rather than network play-again matchmaking.

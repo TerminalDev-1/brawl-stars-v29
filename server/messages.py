@@ -2,6 +2,7 @@
 import time
 from protocol import Writer
 from brawlers import UNLOCK_CARDS
+import brawl_pass
 import shop
 
 GEM_GRAB_MAP, SHOWDOWN_MAP = 7, 13  # locations.csv: Hard Rock Mine, Skull Creek
@@ -63,12 +64,7 @@ def home_data(p):
     w.string('GB')
     w.string('')
     w.values(0, 0)  # settings and countdown arrays
-    w.boolean(True)
-    w.values(0, 0, 0, 0)
-    for _ in range(2):
-        w.boolean(True)
-        for _ in range(4):
-            w.integer(0)
+    brawl_pass.encode(w, p)
     w.values(1, 0, 0)
     w.boolean(True)
     w.vint(0)  # quests

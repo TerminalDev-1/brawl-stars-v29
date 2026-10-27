@@ -14,6 +14,7 @@ import hashlib
 import json
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -84,6 +85,11 @@ def main():
                 'globalThis.V29_SERVER_CONFIG = ' + json.dumps({"host": args.host, "port": args.port}) + ';\n')
     (LIB / "libgadget.script.so").write_text(
         settings + (PATCH / script).read_text(encoding="utf-8"), encoding="utf-8")
+
+    # Game-data changes (balance.py): Colette's flat damage, etc.
+    sys.path.insert(0, str(PATCH))
+    import balance
+    print("game data edits:", balance.apply(SRC / "assets") or "already applied")
 
     OUT.mkdir(exist_ok=True)
     unsigned = OUT / "brawl_v29_unsigned.apk"

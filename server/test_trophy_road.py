@@ -87,9 +87,9 @@ class TrophyRoadTests(unittest.TestCase):
                 thread.join()
 
 
-def showdown_result(rank, players=10):
+def showdown_result(rank, players=10, result=None):
     w = Writer()
-    w.values(1, 0, rank, 15, 13, players)
+    w.values(rank if result is None else result, 0, rank, 15, 13, players)
     for index in range(players):
         w.values(16, 0 if index == 0 else index, 0, index, int(index == 0))
         w.string('Player' if index == 0 else str(index))
@@ -106,6 +106,12 @@ class ShowdownTests(unittest.TestCase):
                                 {'delta': 7, 'old_trophies': 0, 'experience': 20, 'old_experience': 0})
         self.assertEqual([Reader(payload).vint() for _ in range(1)], [2])
 
+    def test_showdown_low_placement_is_accepted(self):
+        # Captured case: 7th place arrives as result=7, rank=7.
+        battle = BotBattle(1)
+        self.assertEqual(read_result(showdown_result(7), battle), 7)
+        self.assertEqual(battle.rank, 7)
+
     def test_showdown_rejects_bad_rank_and_unowned_brawler(self):
         with self.assertRaises(ValueError):
             read_result(showdown_result(11), BotBattle(1))
@@ -119,7 +125,7 @@ class ShowdownTests(unittest.TestCase):
             for rank, expected in [(1, 10), (4, 6), (10, 0)]:
                 battle = BotBattle(p['id'])
                 store.begin_battle(p['id'], battle.match_id, 13, battle.started_at)
-                reward = store.complete_battle(p['id'], battle.match_id, 1, 0, rank)
+                reward = store.complete_battle(p['id'], battle.match_id, rank, 0, rank)
                 self.assertEqual(reward['delta'], expected)
             self.assertEqual(reward['player']['trophies'], 16)
             self.assertEqual(reward['player']['brawler_trophies'], {'0': 16})

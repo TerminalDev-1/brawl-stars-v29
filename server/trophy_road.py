@@ -1,7 +1,7 @@
 """v29 Trophy Road table (milestones.csv track 6) and reward delivery."""
 import secrets
 
-from brawlers import BOX_RARITY_WEIGHTS, BRAWLERS, add_points, owned, points_needed
+from brawlers import BOX_EXCLUDED, BOX_RARITY_WEIGHTS, BRAWLERS, add_points, owned, points_needed
 from protocol import Writer
 
 # Reward types used by milestones.csv.
@@ -55,7 +55,7 @@ def _new_brawler(player, scale):
     if secrets.randbelow(1000) >= 40 * scale:
         return None
     candidates = [b for b, (_, rarity) in BRAWLERS.items()
-                  if rarity in BOX_RARITY_WEIGHTS and b not in owned(player)]
+                  if rarity in BOX_RARITY_WEIGHTS and b not in owned(player) and b not in BOX_EXCLUDED]
     if not candidates:
         return None
     weights = [BOX_RARITY_WEIGHTS[BRAWLERS[b][1]] for b in candidates]
@@ -129,7 +129,7 @@ def claim(player):
     return index, box, items
 
 
-def delivery_command(box, items, track=None, new_counter=0):
+def delivery_command(box, items, track=None, new_counter=0, season=0):
     """AvailableServerCommand (24111) carrying LogicGiveDeliveryItemsCommand (203).
 
     Trophy Road deliveries also name the reward track and its new progress.
@@ -145,5 +145,5 @@ def delivery_command(box, items, track=None, new_counter=0):
         w.values(item, 0, 0, 0, 0)
     if track is not None:
         w.boolean(False)
-        w.values(track, new_counter, 0, 1)
+        w.values(track, new_counter, season, 1)
     return w.bytes()

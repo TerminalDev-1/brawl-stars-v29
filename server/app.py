@@ -139,6 +139,7 @@ class Client(socketserver.BaseRequestHandler):
         for note in result.notes:
             LOG.info('session=%s COMMAND player=%d %s', self.session, self.player['id'], note)
         for kind, body in result.replies:
+            LOG.debug('session=%s REPLY type=%d claim=%s body=%s', self.session, kind, payload.hex(), body.hex())
             self.send(kind, body)
         if result.resync:
             self.home()  # The client's view disagreed with the server; resend the truth.

@@ -10,6 +10,8 @@ import threading
 import time
 from pathlib import Path
 
+import brawl_pass
+
 DEFAULT_THEME = 15  # v29: Welcome to Starr Park / Gift Shop.
 SHOWDOWN_TROPHIES = (10, 8, 7, 6, 4, 2, 2, 1, 0, 0)  # by placement, low-trophy tier
 
@@ -107,7 +109,7 @@ class AccountStore:
             self.backup()
 
     def complete_battle(self, player_id, match_id, result, brawler=0, rank=0):
-        if result not in (0, 1, 2):
+        if (rank and not 1 <= rank <= 10) or (not rank and result not in (0, 1, 2)):
             raise ValueError('invalid bot battle result')
         with self.lock, self.connect() as db:
             match = db.execute('SELECT * FROM bot_battles WHERE match_id=? AND player_id=?',
@@ -128,8 +130,11 @@ class AccountStore:
                 delta = 8 if result == 0 else 0
                 experience = 20 if result == 0 else 10
                 win = result == 0
+            tokens = (max(4, 24 - 2 * rank) if rank else 20 if result == 0 else 15 if result == 2 else 10)
+            tokens, doubled = brawl_pass.add_tokens(state, tokens)
             state['trophies'] += delta
             per_brawler = state.get('brawler_trophies') or {'0': old_trophies}
+            old_brawler_trophies = per_brawler.get(str(brawler), 0)
             per_brawler[str(brawler)] = per_brawler.get(str(brawler), 0) + delta
             state['brawler_trophies'] = per_brawler
             state['brawler'] = brawler
@@ -144,7 +149,10 @@ class AccountStore:
             self.backup()
             state['id'] = player_id
             return {'player': state, 'delta': delta, 'experience': experience,
-                    'old_trophies': old_trophies, 'old_experience': old_experience}
+                    'tokens': tokens, 'doubled': doubled,
+                    'old_trophies': old_trophies, 'old_experience': old_experience,
+                    'old_brawler_trophies': old_brawler_trophies,
+                    'doubler_left': state.get('token_doubler', 0)}
 
     def abandon_battle(self, player_id, match_id):
         with self.lock, self.connect() as db:

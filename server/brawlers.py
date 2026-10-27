@@ -12,10 +12,12 @@ BRAWLERS = {
     28: (182, 'legendary'), 29: (188, 'epic'), 30: (194, 'common'), 31: (200, 'mega_epic'),
     32: (206, 'mega_epic'), 34: (218, 'super_rare'), 35: (224, 'epic'), 36: (230, 'epic'),
     37: (236, 'mega_epic'), 38: (279, 'epic'),
+    39: (296, 'epic'),  # Colette: Brawl Pass season 2 brawler and a free shop offer.
 }
 UNLOCK_CARDS = {brawler: card for brawler, (card, _) in BRAWLERS.items()}
 
 # Brawlers that can drop from boxes, by rarity weight (common ones come from Trophy Road).
+BOX_EXCLUDED = {39}  # Colette comes from the Brawl Pass and her free offer.
 BOX_RARITY_WEIGHTS = {'rare': 50, 'super_rare': 25, 'epic': 13, 'mega_epic': 8, 'legendary': 4}
 
 # Upgrading from power level N+1 to N+2 costs UPGRADE_POINTS[N] points and UPGRADE_GOLD[N] coins.
