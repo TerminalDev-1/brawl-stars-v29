@@ -8,10 +8,16 @@ Last updated: 2026-10-27.
 - Active development branch: main, tracking origin/main.
 - Remote branch inventory verified on 2026-10-27: main is the only remote
   branch. There are no outstanding remote branches to merge or delete.
-- Latest published APK: v0.2.0, playable bot-only Gem Grab.
-  https://github.com/TerminalDev-1/brawl-stars-v29/releases/tag/v0.2.0
-- Gameplay implementation commit: f46314cf731a2d6c2c62f53172f8ef057ea5d5a0.
+- Latest published APK: v0.3.0, Trophy Road, Showdown, Shop, Brawl Pass and a
+  buffed free Colette.
+  https://github.com/TerminalDev-1/brawl-stars-v29/releases/tag/v0.3.0
+- Release commit: febfa028dfa2afab27ee7c402669353976a46ec1.
 - APK SHA256:
+  3cb525e3cf1ed7aff8f916216320bdba97d5c82670896a33d0ca025e4e411904.
+- Verified 2026-10-27: the release is public (not a draft), GitHub's asset
+  digest matches the local build, and the build is byte-identical to the APK
+  installed and tested on the tablet.
+- Previous release: v0.2.0 (bot-only Gem Grab), APK SHA256
   ad9f652f1fdffc92fcbe3ca8142250799c020cfbfe3136d57b6b11019aad797c.
 - Earlier local history is preserved by the local-only tag
   archive/local-main-before-unification-20261027. Preserve that history locally;
@@ -76,8 +82,8 @@ Last updated: 2026-10-27.
 
 ## Verification evidence
 
-Verified on 2026-10-27 for Colette, Brawl Pass and the Showdown fix (APK rebuilt
-and installed on the tablet; not published as a release):
+Verified on 2026-10-27 for Colette, Brawl Pass and the Showdown fix (APK rebuilt,
+installed on the tablet and published as v0.3.0):
 
 - All 38 automated server tests passed, including 10 new tests (captured Brawl
   Pass claim, premium rules, tier purchase, token doubling, free Colette offer,
