@@ -17,3 +17,11 @@
 - Carry existing authorization forward. Ask only for information or access
   actually needed to complete the requested work; continue independent work
   while waiting. Explain a real blocker precisely if one prevents completion.
+- Work directly on main and keep it synchronized with origin/main. Do not
+  create separate branches unless the user explicitly requests one.
+- Treat the user's instruction to "commit" as "commit and push". Commit the
+  authorized changes and push main to origin; report any push failure clearly.
+- Update PROJECT_STATUS.MD every time a new change is verified to work or be
+  usable. Record the resulting behavior, verification evidence, and remaining
+  limitations before committing and pushing the change. Keep this file current
+  and distinguish verified functionality from unfinished or unverified work.
