@@ -63,7 +63,15 @@ def home_data(p):
     w.reference(16, p['brawler'])
     w.string('GB')
     w.string('')
-    w.values(0, 0)  # settings and countdown arrays
+    # Int-value records. Key 4 = trophies won in the last battle; the client
+    # plays the trophy fly-in animation on the home screen once for it.
+    if p.get('trophy_animation'):
+        w.vint(1)
+        w.integer(4)
+        w.integer(p['trophy_animation'])
+    else:
+        w.vint(0)
+    w.vint(0)  # countdown array
     brawl_pass.encode(w, p)
     w.values(1, 0, 0)
     w.boolean(True)

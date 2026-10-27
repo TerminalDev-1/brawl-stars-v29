@@ -24,14 +24,31 @@ def seconds_left():
     return int((tomorrow - now).total_seconds())
 
 
+FREE_COLETTE_POINTS = 100  # Daily gift once Colette is owned.
+
+
 def free_colette(player):
-    """Colette is free in the shop until the player owns her."""
-    offers = player['offers']
-    if COLETTE in brawlers.owned(player) or any(o['type'] == OFFER_BRAWLER for o in offers['items']):
-        return False
-    offers['items'].append({'type': OFFER_BRAWLER, 'amount': 1, 'brawler': COLETTE,
-                            'currency': CURRENCY_GEMS, 'cost': 0, 'section': SECTION_SPECIAL})
-    return True
+    """The FREE COLETTE! offer is always in the shop.
+
+    Before she is owned it unlocks her; afterwards it gives her power points
+    (once per day, like the other daily offers). Returns True if it changed.
+    """
+    items = player['offers']['items']
+    index = next((i for i, o in enumerate(items) if o.get('section') == SECTION_SPECIAL), None)
+    if COLETTE in brawlers.owned(player):
+        amount = min(FREE_COLETTE_POINTS, brawlers.points_needed(player, COLETTE)) or FREE_COLETTE_POINTS
+        offer = {'type': OFFER_POWER_POINTS, 'amount': amount, 'brawler': COLETTE,
+                 'currency': CURRENCY_GEMS, 'cost': 0, 'section': SECTION_SPECIAL}
+    else:
+        offer = {'type': OFFER_BRAWLER, 'amount': 1, 'brawler': COLETTE,
+                 'currency': CURRENCY_GEMS, 'cost': 0, 'section': SECTION_SPECIAL}
+    if index is None:
+        items.append(offer)
+        return True
+    if items[index] != offer:
+        items[index] = offer
+        return True
+    return False
 
 
 def daily_offers(player):

@@ -15,8 +15,11 @@ boxes, new Brawlers like Nita, coins and power points. Showdown unlocks at
 menu you can pick any Brawler you own and upgrade it with coins and power
 points. The Shop sells Big and Mega Boxes, the Token Doubler and a coin
 pack for gems, plus daily deals (power points for coins) that refresh at
-midnight, plus a free Colette. Colette is buffed to a flat 1000 damage per
-shot instead of her percent-of-health attack, and reloads 25% faster. The Brawl Pass works: battles
+midnight, plus a free Colette offer that never goes away (after you own
+her it gives free Colette power points once a day). Colette's attack is
+buffed to a flat 1300 damage per shot instead of percent-of-health, and
+she reloads in 1.15 seconds instead of 1.8. After a battle the home screen
+plays the trophy fly-in animation. The Brawl Pass works: battles
 earn tokens, and you can claim free rewards, buy the pass for 169 gems and
 claim the premium track (Poco Starr, Colette, Trixie Colette). Gem packs
 cost real money in the original game and don't work here. Clubs, friends,

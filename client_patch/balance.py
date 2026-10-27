@@ -9,10 +9,16 @@ import json
 from pathlib import Path
 
 EDITS = [
-    # Colette: flat 1000 damage per shot instead of 35% of the target's health.
+    # Colette's attack: flat 1300 damage instead of 35% of the target's health.
+    ('csv_logic/skills.csv', 'PercenterWeapon', 'Damage', '1300'),
     ('csv_logic/skills.csv', 'PercenterWeapon', 'PercentDamage', ''),
-    # Colette: reload 25% faster (1800 ms per shot -> 1440 ms).
-    ('csv_logic/skills.csv', 'PercenterWeapon', 'RechargeTime', '1440'),
+    # Colette reloads faster: 1800 ms per shot -> 1150 ms.
+    ('csv_logic/skills.csv', 'PercenterWeapon', 'RechargeTime', '1150'),
+    # Colette's Super stays stock (20% of the target's max health, 1000 to special
+    # targets): her dash type always deals percent damage, and the Damage field
+    # only applies to special targets such as the Heist safe.
+    ('csv_logic/skills.csv', 'PercenterUlti', 'Damage', '1000'),
+    ('csv_logic/skills.csv', 'PercenterUlti', 'PercentDamage', '20'),
     # Colette is hidden in v29 ("locked for Chronos"); make her obtainable.
     ('csv_logic/characters.csv', 'Percenter', 'LockedForChronos', ''),
 ]

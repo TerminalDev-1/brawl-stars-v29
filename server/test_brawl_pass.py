@@ -80,14 +80,24 @@ class BrawlPassTests(unittest.TestCase):
 
 
 class ColetteTests(unittest.TestCase):
-    def test_free_colette_offer_until_owned(self):
+    def test_free_colette_offer_stays_up(self):
         p = player()
         shop.daily_offers(p)
-        index = next(i for i, o in enumerate(p['offers']['items']) if o['brawler'] == 39)
+        index = next(i for i, o in enumerate(p['offers']['items']) if o.get('section') == shop.SECTION_SPECIAL)
         self.assertEqual(p['offers']['items'][index]['cost'], 0)
         self.assertEqual(shop.buy(p, index), [(trophy_road.ITEM_BRAWLER, 39, 1)])
         self.assertIn(39, brawlers.owned(p))
+        self.assertIsNone(shop.buy(p, index))  # Once per day.
+        # Next login the same day: still listed, now as Colette power points, already claimed.
+        shop.daily_offers(p)
+        offer = p['offers']['items'][index]
+        self.assertEqual((offer['type'], offer['brawler'], offer['cost']), (shop.OFFER_POWER_POINTS, 39, 0))
         self.assertIsNone(shop.buy(p, index))
+        # Next day: claimable again for points.
+        p['offers']['day'] = '2000-01-01'
+        shop.daily_offers(p)
+        index = next(i for i, o in enumerate(p['offers']['items']) if o.get('section') == shop.SECTION_SPECIAL)
+        self.assertEqual(shop.buy(p, index), [(trophy_road.ITEM_POWER_POINTS, 39, shop.FREE_COLETTE_POINTS)])
 
     def test_colette_never_drops_from_boxes(self):
         self.assertIn(39, brawlers.BOX_EXCLUDED)
@@ -105,10 +115,30 @@ class ColetteTests(unittest.TestCase):
                 shutil.copy(assets / 'csv_logic' / name, copy / 'csv_logic' / name)
             shutil.copy(assets / 'fingerprint.json', copy / 'fingerprint.json')
             balance.apply(copy)
-            line = next(l for l in (copy / 'csv_logic' / 'skills.csv').read_text(encoding='utf-8').splitlines()
-                        if l.startswith('"PercenterWeapon"'))
-            self.assertIn(',1000,,100,', line)  # Damage 1000, no percent damage.
+            lines = (copy / 'csv_logic' / 'skills.csv').read_text(encoding='utf-8').splitlines()
+            weapon = next(l for l in lines if l.startswith('"PercenterWeapon"'))
+            ulti = next(l for l in lines if l.startswith('"PercenterUlti"'))
+            self.assertIn(',1150,3,1300,,100,', weapon)  # Reload 1150 ms, 1300 flat damage.
+            self.assertIn(',1000,20,', ulti)  # Super stays stock.
 
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class TrophyAnimationTests(unittest.TestCase):
+    def test_battle_win_queues_one_trophy_animation(self):
+        import tempfile as tf
+        from battles import BotBattle
+        from messages import home_data
+        from storage import AccountStore
+        with tf.TemporaryDirectory() as temp:
+            store = AccountStore(temp)
+            p, _ = store.login(0, None)
+            battle = BotBattle(p['id'])
+            store.begin_battle(p['id'], battle.match_id, 13, battle.started_at)
+            state = store.complete_battle(p['id'], battle.match_id, 1, 0, 1)['player']
+            self.assertEqual(state['trophy_animation'], 10)
+            with_animation = home_data(state)
+            state.pop('trophy_animation')
+            self.assertEqual(len(with_animation), len(home_data(state)) + 8)  # One int-value record.

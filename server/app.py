@@ -32,9 +32,12 @@ class Client(socketserver.BaseRequestHandler):
         LOG.debug('session=%s SEND type=%d length=%d version=%d', self.session, kind, len(body), version)
 
     def home(self):
-        if shop.daily_offers(self.player):
-            self.server.store.save(self.player)
+        changed = shop.daily_offers(self.player)
         self.send(24101, home_data(self.player))
+        if self.player.pop('trophy_animation', None):
+            changed = True  # The fly-in animation plays once.
+        if changed:
+            self.server.store.save(self.player)
 
     def login(self, payload):
         if self.player is not None:

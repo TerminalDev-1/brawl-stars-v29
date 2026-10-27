@@ -57,11 +57,20 @@ Last updated: 2026-10-27.
   screen is resent.
 - Colette, Brawl Pass and Showdown fixes (2026-10-27):
   - Client build applies game-data edits from client_patch/balance.py: Colette's
-    main attack does a flat 1000 damage (the percent-of-health damage is
-    removed), she reloads 25% faster (1800 ms -> 1440 ms per shot), and her
-    hidden flag is cleared so she appears in the collection.
-  - The shop has a FREE COLETTE! offer until the player owns her. She never
-    drops from boxes.
+    main attack does a flat 1300 damage (the percent-of-health damage is
+    removed), she reloads in 1150 ms per shot (stock 1800 ms), and her hidden
+    flag is cleared so she appears in the collection. Her Super stays stock
+    (20% of max health): her dash type always deals percent damage, and its
+    Damage field only applies to special targets. A flat 2000 was tried on the
+    device and still dealt percent damage, so it was reverted.
+  - The shop always has a FREE COLETTE! offer. Before she is owned it unlocks
+    her; afterwards it gives 100 Colette power points once per day (the client
+    hides it after it is claimed until the daily reset). She never drops from
+    boxes.
+- Trophy fly-in animation (2026-10-27): after a battle that gains trophies, home
+  data carries the trophies won (int-value record 4) once, and the home screen
+  plays the trophy count-up animation. Verified on the tablet: the counter went
+  51 -> 61 with +10 flying in after a Showdown win; the animation plays once.
   - Brawl Pass season 2 (Starr Park / Colette) from milestones.csv: battles give
     tokens (Token Doubler doubles them), free and premium tiers can be claimed
     once each (deliveries carry season 2, which the client requires), the pass
@@ -81,6 +90,15 @@ Last updated: 2026-10-27.
   and raw account payloads are not logged.
 
 ## Verification evidence
+
+Verified on 2026-10-27 for the second Colette update and the trophy animation
+(APK rebuilt and installed; not yet published as a release):
+
+- All 40 automated server tests passed.
+- On the tablet: Colette's stats show Damage 1300 and Reload Speed VERY FAST; in
+  training one shot took a 4000-health dummy to 2700. The results screen shows
+  the brawler's own trophies and the real Token Doubler balance (1456 left after
+  doubling 22 tokens to 44).
 
 Verified on 2026-10-27 for Colette, Brawl Pass and the Showdown fix (APK rebuilt,
 installed on the tablet and published as v0.3.0):
@@ -166,7 +184,8 @@ an internet-hosted public backend.
   accepted by the server but have not been tested on the device.
 - Brawl Pass quests, pins and selecting the pass skins are not implemented;
   the 249-gem Brawl Pass bundle and buying tiers were not tested on the device.
-  Colette's Super still uses its percent damage. Profile, club, friends, chat,
+  Colette's Super still uses its percent damage (not changeable through game
+  data). Profile, club, friends, chat,
   gadgets and star powers are still unimplemented; unknown commands are logged as
   UNIMPLEMENTED with their bytes. Trophies are credited to the brawler reported
   in the match result. Gem packs (real money) cannot be bought.

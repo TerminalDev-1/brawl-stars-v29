@@ -138,6 +138,7 @@ class AccountStore:
             per_brawler[str(brawler)] = per_brawler.get(str(brawler), 0) + delta
             state['brawler_trophies'] = per_brawler
             state['brawler'] = brawler
+            state['trophy_animation'] = delta
             state['highest_trophies'] = max(state.get('highest_trophies', 0), state['trophies'])
             state['experience'] = old_experience + experience
             state['battles_played'] = state.get('battles_played', 0) + 1
