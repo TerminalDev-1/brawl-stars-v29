@@ -1,0 +1,18 @@
+# Large or third-party files: not tracked
+*.apk
+tools/
+client_src/
+build/
+reference/
+stock32/
+__pycache__/
+server/data/
+debuglog.txt
+debuglog.txt.*
+*.sqlite3*
+*.db
+.env
+*.keystore
+*.jks
+USER_STATE.md
+HANDOFF.md
