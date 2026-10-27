@@ -27,3 +27,6 @@
   usable. Record the resulting behavior, verification evidence, and remaining
   limitations before committing and pushing the change. Keep this file current
   and distinguish verified functionality from unfinished or unverified work.
+- Follow PROJECT_RULES.md. Every change is committed and pushed, and every
+  change that requires a new APK ends with a published GitHub release of the
+  rebuilt, tablet-verified build.

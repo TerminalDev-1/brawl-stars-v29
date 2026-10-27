@@ -7,9 +7,10 @@ Supercell's servers. You can create an account, log in, sit in the lobby
 actually play bot matches: Gem Grab (3v3, you and two bot teammates
 against three bots) and Solo Showdown (you against nine bots), with real
 movement, shooting, damage, respawns and gems running client-side. Python
-tracks the match and hands out the results — 8 Trophies and 20 XP for a
-Gem Grab win, 10 XP for a loss or draw, up to 10 Trophies for a Showdown
-placement, nothing if you quit early. Trophy Road rewards can be collected:
+tracks the match and hands out the results — 250 Trophies and 20 XP for a
+Gem Grab win, 10 XP for a loss or draw; in Showdown, 1st to 5th place give
++250/+200/+150/+100/+50 and 6th to 10th lose 8/12/16/23/25. Nothing if you
+quit early. Trophy Road rewards can be collected:
 boxes, new Brawlers like Nita, coins and power points. Showdown unlocks at
 30 trophies on the Trophy Road, like the original game. In the Brawlers
 menu you can pick any Brawler you own and upgrade it with coins and power

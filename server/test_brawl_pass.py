@@ -138,7 +138,7 @@ class TrophyAnimationTests(unittest.TestCase):
             battle = BotBattle(p['id'])
             store.begin_battle(p['id'], battle.match_id, 13, battle.started_at)
             state = store.complete_battle(p['id'], battle.match_id, 1, 0, 1)['player']
-            self.assertEqual(state['trophy_animation'], 10)
+            self.assertEqual(state['trophy_animation'], 250)
             with_animation = home_data(state)
             state.pop('trophy_animation')
             self.assertEqual(len(with_animation), len(home_data(state)) + 8)  # One int-value record.

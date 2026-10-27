@@ -37,6 +37,11 @@ Last updated: 2026-10-27.
   20 experience; losses and draws give 10 experience without a trophy penalty.
 - Leaving early returns home without a reward. Duplicate completed results
   cannot award progression twice. Another battle can be started after returning.
+- Trophy rewards (2026-10-27): a Gem Grab win gives +250 (losses and draws 0).
+  Showdown placements 1-10 give +250, +200, +150, +100, +50, -8, -12, -16, -23,
+  -25. A brawler can't drop below 0 trophies, highest trophies never decrease,
+  and the trophy fly-in plays only for gains. Verified on the tablet: an 8th
+  place showed -16 on the results screen and was saved.
 - Trophy Road rewards can be collected (2026-10-27). The client's claim command
   (517 inside message 14102) is answered with a delivery (24111 / command 203)
   using the v29 Trophy Road table (milestones.csv track 6): Brawl/Big/Mega Box
@@ -196,5 +201,8 @@ an internet-hosted public backend.
   initialization described in client_patch/README.md.
 - Live databases, JSON snapshots, logs, credentials, signing keys, private
   notes, device details, and third-party game assets stay out of public source.
+- Client bot difficulty is decided in the client's native code (nothing in the
+  game data or the reference server controls it); capping it is not done yet.
 - Future verified changes must update this file before commit and push.
+  PROJECT_RULES.md requires a published release whenever the APK changes.
   Work stays on main, and a request to commit includes pushing to origin/main.
