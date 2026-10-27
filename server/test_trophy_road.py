@@ -122,14 +122,14 @@ class ShowdownTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             store = AccountStore(temp)
             p, _ = store.login(0, None)
-            for rank, expected in [(1, 250), (4, 100), (10, -25)]:
+            for rank, expected in [(1, 500), (4, 200), (10, -25)]:
                 battle = BotBattle(p['id'])
                 store.begin_battle(p['id'], battle.match_id, 13, battle.started_at)
                 reward = store.complete_battle(p['id'], battle.match_id, rank, 0, rank)
                 self.assertEqual(reward['delta'], expected)
-            self.assertEqual(reward['player']['trophies'], 325)
-            self.assertEqual(reward['player']['brawler_trophies'], {'0': 325})
-            self.assertEqual(reward['player']['highest_trophies'], 350)
+            self.assertEqual(reward['player']['trophies'], 675)
+            self.assertEqual(reward['player']['brawler_trophies'], {'0': 675})
+            self.assertEqual(reward['player']['highest_trophies'], 700)
             # A loss can't push a brawler below zero.
             battle = BotBattle(p['id'], 8)
             store.begin_battle(p['id'], battle.match_id, 13, battle.started_at)

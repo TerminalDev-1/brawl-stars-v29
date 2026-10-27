@@ -7,9 +7,9 @@ Supercell's servers. You can create an account, log in, sit in the lobby
 actually play bot matches: Gem Grab (3v3, you and two bot teammates
 against three bots) and Solo Showdown (you against nine bots), with real
 movement, shooting, damage, respawns and gems running client-side. Python
-tracks the match and hands out the results — 250 Trophies and 20 XP for a
+tracks the match and hands out the results — 500 Trophies and 20 XP for a
 Gem Grab win, 10 XP for a loss or draw; in Showdown, 1st to 5th place give
-+250/+200/+150/+100/+50 and 6th to 10th lose 8/12/16/23/25. Nothing if you
++500/+400/+300/+200/+100 and 6th to 10th lose 8/12/16/23/25. Nothing if you
 quit early. Trophy Road rewards can be collected:
 boxes, new Brawlers like Nita, coins and power points. Showdown unlocks at
 30 trophies on the Trophy Road, like the original game. In the Brawlers
@@ -19,7 +19,7 @@ pack for gems, plus daily deals (power points for coins) that refresh at
 midnight, plus a free Colette offer that never goes away (after you own
 her it gives free Colette power points once a day). Colette's attack is
 buffed to a flat 1300 damage per shot instead of percent-of-health, and
-she reloads in 1.15 seconds instead of 1.8. After a battle the home screen
+she reloads in 1.15 seconds instead of 1.8 and moves 15% faster. After a battle the home screen
 plays the trophy fly-in animation. The Brawl Pass works: battles
 earn tokens, and you can claim free rewards, buy the pass for 169 gems and
 claim the premium track (Poco Starr, Colette, Trixie Colette). Gem packs

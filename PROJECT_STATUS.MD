@@ -38,8 +38,8 @@ Last updated: 2026-10-27.
   20 experience; losses and draws give 10 experience without a trophy penalty.
 - Leaving early returns home without a reward. Duplicate completed results
   cannot award progression twice. Another battle can be started after returning.
-- Trophy rewards (2026-10-27): a Gem Grab win gives +250 (losses and draws 0).
-  Showdown placements 1-10 give +250, +200, +150, +100, +50, -8, -12, -16, -23,
+- Trophy rewards (2026-10-27): a Gem Grab win gives +500 (losses and draws 0).
+  Showdown placements 1-10 give +500, +400, +300, +200, +100, -8, -12, -16, -23,
   -25. A brawler can't drop below 0 trophies, highest trophies never decrease,
   and the trophy fly-in plays only for gains. Verified on the tablet: an 8th
   place showed -16 on the results screen and was saved.
@@ -64,7 +64,8 @@ Last updated: 2026-10-27.
 - Colette, Brawl Pass and Showdown fixes (2026-10-27):
   - Client build applies game-data edits from client_patch/balance.py: Colette's
     main attack does a flat 1300 damage (the percent-of-health damage is
-    removed), she reloads in 1150 ms per shot (stock 1800 ms), and her hidden
+    removed), she reloads in 1150 ms per shot (stock 1800 ms), she moves 15%
+    faster (speed 828, stock 720; stats show VERY FAST), and her hidden
     flag is cleared so she appears in the collection. Her Super stays stock
     (20% of max health): her dash type always deals percent damage, and its
     Damage field only applies to special targets. A flat 2000 was tried on the

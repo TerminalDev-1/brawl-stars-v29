@@ -19,6 +19,8 @@ EDITS = [
     # only applies to special targets such as the Heist safe.
     ('csv_logic/skills.csv', 'PercenterUlti', 'Damage', '1000'),
     ('csv_logic/skills.csv', 'PercenterUlti', 'PercentDamage', '20'),
+    # Colette moves 15% faster: 720 -> 828.
+    ('csv_logic/characters.csv', 'Percenter', 'Speed', '828'),
     # Colette is hidden in v29 ("locked for Chronos"); make her obtainable.
     ('csv_logic/characters.csv', 'Percenter', 'LockedForChronos', ''),
 ]
