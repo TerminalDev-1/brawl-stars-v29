@@ -1,14 +1,15 @@
-# Brawl Stars v29 — Python server
+# Brawl Stars v29 — private server
 
-A local Python server and matching Android client hook for Brawl Stars v29.
-The server implements account creation, token-authenticated reconnects, LoginOk,
-home data, a starter Shelly inventory, an event slot, and keepalive replies.
-Bot-only Gem Grab is playable from the lobby's Play button. The Android
-client runs its native movement, shooting, damage, respawns, gem collection,
-and bot AI; Python tracks the active match and handles results and progression.
-There is one human and five bots, with no player matchmaking or PvP.
-Wins award 8 trophies and 20 experience; losses/draws award 10 experience.
-Leaving early gives no reward. Most other home commands remain unimplemented.
+A private Python server for Brawl Stars v29, built from scratch, with a
+matching Android client hook. The server implements account creation,
+token-authenticated reconnects, LoginOk, home data, a starter Shelly
+inventory, an event slot, and keepalive replies. Bot-only Gem Grab is
+playable from the lobby's Play button. The Android client runs its native
+movement, shooting, damage, respawns, gem collection, and bot AI; Python
+tracks the active match and handles results and progression. There is one
+human and five bots, with no player matchmaking or PvP. Wins award 8
+trophies and 20 experience; losses/draws award 10 experience. Leaving
+early gives no reward. Most other home commands remain unimplemented.
 
 The lobby uses v29's pink/purple Gift Shop theme (theme 15), matching the
 [Welcome to Starr Park update](https://supercell.com/en/games/brawlstars/blog/release-notes/welcome-to-starr-park/).
@@ -33,21 +34,6 @@ they are private runtime data and are excluded from Git.
 `debuglog.txt` records every connection, login, message type/length, error, and
 disconnect. It appends across logins and rotates at 5 MB with three older logs.
 Account tokens and packet payloads are not written to the log.
-
-## Android client
-
-The release APK is a self-hosting client, with endpoint `127.0.0.1:9339`.
-It does not connect to an internet-hosted public backend. With Android platform
-tools installed and the tablet connected by USB or wireless debugging:
-
-```powershell
-adb install -r --abi armeabi-v7a brawl_v29.apk
-adb reverse tcp:9339 tcp:9339
-```
-
-Start the Python server, then open Brawl V29. Repeat `adb reverse` after an ADB
-reconnect. First launch may show an Android/game notice requiring your choice.
-For a direct LAN endpoint, rebuild with `--host YOUR_SERVER_LAN_IP`.
 
 See [client build notes](client_patch/README.md) for local build requirements.
 The original APK, native libraries, Android assets, tools, signing keys,
@@ -78,5 +64,6 @@ Public v29 protocol research was cross-checked against the
 field alignment checked against the local client's native decoder. No upstream
 server is needed at runtime.
 
-This is an independent, unofficial hobby project. Android game assets and
-other third-party components remain the property of their respective owners.
+This is a private server, not an official or public release. Android game
+assets and other third-party components remain the property of their
+respective owners.

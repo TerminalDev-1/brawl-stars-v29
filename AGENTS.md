@@ -1,5 +1,7 @@
 # Working agreement
 
+- This is a private server, not an unofficial hobby project or a public
+  release. Describe it that way in README.md and elsewhere.
 - Continue authorized work until the requested result is implemented and verified.
   Do not finish early after gathering evidence, writing a plan, or making a
   partial implementation. The user explicitly dislikes early stopping.
