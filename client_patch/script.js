@@ -27,6 +27,8 @@ const PROFILES = {
   reference: {
     serverConnection: 0xc86d10,
     createMessageByType: 0x4a7ee4,
+    lobbyDebugGetter: 0x6db4, // Function in the matched native companion.
+    lobbyDebugReturn: 0x5c37f4,
   },
 };
 const OFFSETS = PROFILES[globalThis.V29_LIBRARY_PROFILE || 'reference'];
@@ -129,10 +131,12 @@ const conn = {
   rx: new Uint8Array(0),   // bytes received but not yet a full packet
   gameBase: null,
   gameEnd: null,
+  lobbyOverlayHook: null,
 };
 
 function setupMessaging() {
   const libg = Process.getModuleByName('libg.so');
+  hideLobbyDebugText(libg);
   conn.gameBase = libg.base;
   conn.gameEnd = libg.base.add(libg.size);
   const serverConnection = libg.base.add(OFFSETS.serverConnection).readPointer();
@@ -140,6 +144,26 @@ function setupMessaging() {
   conn.factory = conn.messaging.add(MSG_FACTORY).readPointer();
   conn.createMessage = new NativeFunction(libg.base.add(OFFSETS.createMessageByType), 'pointer', ['pointer', 'int']);
   log('messaging at', conn.messaging, 'factory at', conn.factory);
+}
+
+function hideLobbyDebugText(libg) {
+  if (OFFSETS.lobbyDebugGetter === undefined || conn.lobbyOverlayHook !== null) return;
+  const helper = Process.findModuleByName('lib39285EFA.so');
+  if (helper === null) return;
+  const caller = libg.base.add(OFFSETS.lobbyDebugReturn);
+  let logged = false;
+  conn.lobbyOverlayHook = Interceptor.attach(helper.base.add(OFFSETS.lobbyDebugGetter), {
+    onEnter() {
+      if (!this.returnAddress.equals(caller)) return;
+      // At this call site r4 is the home screen and +0x1e0 is its debug
+      // TextField. DisplayObject's alpha byte is +8. The game refreshes
+      // this one label every frame; keep its alpha zero across those updates.
+      const label = this.context.r4.add(0x1e0).readPointer();
+      if (label.isNull()) return;
+      label.add(8).writeU8(0);
+      if (!logged) { logged = true; log('lobby debug overlay hidden'); }
+    },
+  });
 }
 
 // ---------- sending ----------

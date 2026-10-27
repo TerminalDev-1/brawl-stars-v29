@@ -5,6 +5,12 @@ The server implements account creation, token-authenticated reconnects, LoginOk,
 home data, a starter Shelly inventory, an event slot, and keepalive replies.
 Battle simulation and most home commands are not implemented yet.
 
+The lobby uses v29's pink/purple Gift Shop theme (theme 15), matching the
+[Welcome to Starr Park update](https://supercell.com/en/games/brawlstars/blog/release-notes/welcome-to-starr-park/).
+Existing accounts on the old default theme are migrated once, preserving
+account data. The client hides the native account/server/mod information
+overlay; player names, balances, and other normal lobby labels remain visible.
+
 ## Run
 
 Requires Python 3.10 or later; the server uses only the standard library.

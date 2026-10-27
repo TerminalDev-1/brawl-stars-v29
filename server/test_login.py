@@ -27,6 +27,29 @@ def login_payload(account=0, token=None):
 
 
 class LoginTests(unittest.TestCase):
+    def test_theme_migration_preserves_account_and_custom_theme(self):
+        with tempfile.TemporaryDirectory() as temp:
+            store = AccountStore(temp)
+            player, token = store.login(0, None)
+            custom, custom_token = store.login(0, None)
+            self.assertEqual(player['theme'], 15)
+            player['theme'] = 0
+            custom['theme'] = 8
+            store.save(player)
+            store.save(custom)
+            with store.connect() as db:
+                db.execute('PRAGMA user_version=0')
+            migrated = AccountStore(temp)
+            loaded, _ = migrated.login(player['id'], token)
+            self.assertEqual(loaded['theme'], 15)
+            self.assertEqual(loaded['gold'], player['gold'])
+            other, _ = migrated.login(custom['id'], custom_token)
+            self.assertEqual(other['theme'], 8)
+            loaded['theme'] = 0
+            migrated.save(loaded)
+            unchanged, _ = AccountStore(temp).login(player['id'], token)
+            self.assertEqual(unchanged['theme'], 0)
+
     def test_native_wire_fixtures(self):
         for value, encoded in [(0, '00'), (63, '3f'), (64, '8001'),
                                (-1, '7f'), (-64, '40'), (-65, 'ff7e')]:

@@ -10,6 +10,8 @@ import threading
 import time
 from pathlib import Path
 
+DEFAULT_THEME = 15  # v29: Welcome to Starr Park / Gift Shop.
+
 
 class AccountStore:
     def __init__(self, directory):
@@ -19,6 +21,7 @@ class AccountStore:
         self.backup_path = self.directory / 'players.json'
         self.lock = threading.RLock()
         fresh = not self.path.exists()
+        migrated = False
         with self.connect() as db:
             db.execute('PRAGMA journal_mode=WAL')
             db.execute('CREATE TABLE IF NOT EXISTS players '
@@ -31,6 +34,19 @@ class AccountStore:
                     db.execute('INSERT INTO players VALUES (?,?,?,?,?,?)',
                                (row['id'], row['token_hash'], json.dumps(row['state']),
                                 row['created_at'], row['last_login'], row['logins']))
+                if snapshot.get('storage_version', 0) >= 1:
+                    db.execute('PRAGMA user_version=1')
+            if db.execute('PRAGMA user_version').fetchone()[0] < 1:
+                for row in db.execute('SELECT id,state FROM players').fetchall():
+                    state = json.loads(row['state'])
+                    if state.get('theme', 0) == 0:
+                        state['theme'] = DEFAULT_THEME
+                        db.execute('UPDATE players SET state=? WHERE id=?',
+                                   (json.dumps(state), row['id']))
+                        migrated = True
+                db.execute('PRAGMA user_version=1')
+        if migrated:
+            self.backup()
 
     @contextmanager
     def connect(self):
@@ -57,7 +73,7 @@ class AccountStore:
             else:
                 token = secrets.token_urlsafe(32)
                 state = {'name': 'Player', 'gems': 100, 'gold': 1000, 'trophies': 0,
-                         'icon': 0, 'name_color': 0, 'brawler': 0, 'theme': 0}
+                         'icon': 0, 'name_color': 0, 'brawler': 0, 'theme': DEFAULT_THEME}
                 cursor = db.execute('INSERT INTO players(token_hash,state,created_at,last_login,logins) '
                                     'VALUES(?,?,?,?,0)', (self.digest(token), json.dumps(state), now, now))
                 player_id = cursor.lastrowid
@@ -83,7 +99,8 @@ class AccountStore:
                 records.append(record)
             temp = self.backup_path.with_suffix('.json.tmp')
             with temp.open('w', encoding='utf-8') as output:
-                json.dump({'schema': 1, 'players': records}, output, indent=2)
+                json.dump({'schema': 1, 'storage_version': db.execute('PRAGMA user_version').fetchone()[0],
+                           'players': records}, output, indent=2)
                 output.flush()
                 os.fsync(output.fileno())
             os.replace(temp, self.backup_path)
