@@ -8,15 +8,15 @@ Last updated: 2026-10-27.
 - Active development branch: main, tracking origin/main.
 - Remote branch inventory verified on 2026-10-27: main is the only remote
   branch. There are no outstanding remote branches to merge or delete.
-- Latest published APK: v0.3.1, Colette buffs, free Colette, trophy animation
-  and trophy rewards.
-  https://github.com/TerminalDev-1/brawl-stars-v29/releases/tag/v0.3.1
-- Release commit: 581769e2763859c1d2d671bebf538344968063cf.
+- Latest published APK: v0.3.2, faster Colette and 500-trophy wins.
+  https://github.com/TerminalDev-1/brawl-stars-v29/releases/tag/v0.3.2
+- Release commit: 5a21f346909fea6c3a1e97705b613f99e2588250.
 - APK SHA256:
-  23b7253c511aefa231914bb43e176026d363078c95427f05c0bf4a14ccc2c235.
+  2a5e201e0c8e0f644e97f841ea3fa9759739cc3dd36c5cc638cd8dc1138ef2a9.
 - Verified 2026-10-27: public, not a draft, GitHub's asset digest matches the
   local build, and the build is byte-identical to the APK on the tablet.
-- Earlier releases: v0.3.0 (APK SHA256
+- Earlier releases: v0.3.1 (APK SHA256
+  23b7253c511aefa231914bb43e176026d363078c95427f05c0bf4a14ccc2c235), v0.3.0 (APK SHA256
   3cb525e3cf1ed7aff8f916216320bdba97d5c82670896a33d0ca025e4e411904).
 - Previous release: v0.2.0 (bot-only Gem Grab), APK SHA256
   ad9f652f1fdffc92fcbe3ca8142250799c020cfbfe3136d57b6b11019aad797c.
