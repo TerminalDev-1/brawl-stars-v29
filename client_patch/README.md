@@ -23,7 +23,10 @@ python server/test_server.py
 python client_patch/verify_client.py --seconds 20 --launches 3
 ```
 
-The server implements LoginOk, home data, persistent accounts, and keepalive.
+The server implements LoginOk, home data, persistent accounts, keepalive,
+and bot match results. Play starts native local bot simulation; the client
+notifies Python before starting and reports the result when the match ends.
+This hook is scoped to network-match starts in the matched reference build.
 Its SQLite database, JSON recovery snapshot, and debuglog.txt remain local.
 
 For live debugging, build with `--debugger --install`, then use the bundled

@@ -29,6 +29,7 @@ const PROFILES = {
     createMessageByType: 0x4a7ee4,
     lobbyDebugGetter: 0x6db4, // Function in the matched native companion.
     lobbyDebugReturn: 0x5c37f4,
+    startBattle: 0x67febc,
   },
 };
 const OFFSETS = PROFILES[globalThis.V29_LIBRARY_PROFILE || 'reference'];
@@ -233,6 +234,23 @@ function deliver(type, version, payload) {
     const data = malloc(payload.length);
     data.writeByteArray(payload);
     ByteStream.setData(stream, data);
+  }
+  if (type === LOGIN_OK && OFFSETS.startBattle !== undefined && !conn.botHooks) {
+    const base = Process.getModuleByName('libg.so').base;
+    conn.botHooks = [
+      Interceptor.attach(base.add(OFFSETS.startBattle), {
+        onEnter(args) {
+          if (args[3].toInt32() !== 1) return;
+          // Start the client's built-in bot simulation rather than waiting for
+          // network ticks. Notify Python first so results belong to a match.
+          const notice = Memory.alloc(7);
+          notice.writeByteArray([0x37, 0x17, 0, 0, 0, 0, 0]); // 14103, empty bot-start body.
+          if (libcSend(conn.fd, notice, 7, 0) !== 7) throw new Error('bot start notification failed');
+          args[3] = ptr(3);
+          log('starting local bot simulation');
+        },
+      }),
+    ];
   }
   Message.decode(msg);
   if (type === LOGIN_OK) conn.messaging.add(MSG_STATE).writeS32(STATE_LOGGED_IN);

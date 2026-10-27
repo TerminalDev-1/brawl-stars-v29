@@ -3,7 +3,12 @@
 A local Python server and matching Android client hook for Brawl Stars v29.
 The server implements account creation, token-authenticated reconnects, LoginOk,
 home data, a starter Shelly inventory, an event slot, and keepalive replies.
-Battle simulation and most home commands are not implemented yet.
+Bot-only Gem Grab is playable from the lobby's Play button. The Android
+client runs its native movement, shooting, damage, respawns, gem collection,
+and bot AI; Python tracks the active match and handles results and progression.
+There is one human and five bots, with no player matchmaking or PvP.
+Wins award 8 trophies and 20 experience; losses/draws award 10 experience.
+Leaving early gives no reward. Most other home commands remain unimplemented.
 
 The lobby uses v29's pink/purple Gift Shop theme (theme 15), matching the
 [Welcome to Starr Park update](https://supercell.com/en/games/brawlstars/blog/release-notes/welcome-to-starr-park/).
@@ -51,12 +56,14 @@ databases, and debug logs are not included in the source repository.
 ## Tests
 
 ```powershell
-python -m unittest discover -s server -p test_login.py -v
+python -m unittest discover -s server -v
 ```
 
 Tests cover native integer/boolean wire fixtures, fragmented TCP messages,
 parallel connections, authentication, reconnects, keepalive, and JSON recovery.
-Device verification is also necessary for changes to home-data serialization.
+Bot tests cover match ownership, duplicate results, abandoned matches, TCP
+start/result/return, and recovering progression/history from JSON. Device
+verification is also necessary for client/native protocol changes.
 
 ## Protocol notes
 

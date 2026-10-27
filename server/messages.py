@@ -40,12 +40,13 @@ def event(w, slot, map_id):
 def home_data(p):
     w = Writer()
     # Daily data: progression, cosmetics, timers, shop, selected character.
-    w.values(int(time.time()), 0, p['trophies'], p['trophies'], p['trophies'], 1, 220)
+    best = p.get('highest_trophies', p['trophies'])
+    w.values(int(time.time()), 0, p['trophies'], best, best, 1, 220 + p.get('experience', 0))
     w.reference(28, p['icon'])
     w.reference(43, p['name_color'])
     w.values(0, 1)
     w.reference(29, 0)
-    w.values(0, 0, 0, p['trophies'], 0, 0)
+    w.values(0, 0, 0, best, 0, 0)
     w.boolean(False)
     w.values(0, 3600000, 0, 3600000, 0)
     w.boolean(True)
@@ -97,7 +98,7 @@ def home_data(p):
     for table, row, amount in [(23, 0, 1), (5, 1, 0), (5, 8, p['gold']), (5, 9, 0), (5, 10, 0)]:
         w.reference(table, row)
         w.vint(amount)
-    for amount in [p['trophies'], p['trophies'], None, 0, 0, None, None]:
+    for amount in [p['trophies'], best, None, 0, 0, None, None]:
         w.vint(0 if amount is None else 1)
         if amount is not None:
             w.reference(16, p['brawler'])

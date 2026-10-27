@@ -8,6 +8,7 @@ import socketserver
 import uuid
 
 from messages import home_data, login_ok
+from battles import BotBattle, battle_result, read_result, start_loading
 from protocol import MAX_PACKET, Reader, Writer, packet, recv_exact
 from storage import AccountStore
 
@@ -18,6 +19,7 @@ LOG = logging.getLogger('v29')
 class Client(socketserver.BaseRequestHandler):
     def setup(self):
         self.player = None
+        self.battle = None
         self.session = uuid.uuid4().hex[:8]
         self.request.settimeout(120)
         self.request.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
@@ -70,7 +72,35 @@ class Client(socketserver.BaseRequestHandler):
                     raise ValueError('login required')
                 elif kind == 10108:
                     self.send(20108)
+                elif kind == 14103:
+                    if self.battle is not None and not self.battle.completed:
+                        LOG.info('session=%s BATTLE_ALREADY_ACTIVE match=%s', self.session, self.battle.match_id)
+                        continue
+                    self.battle = BotBattle(self.player['id'], self.player['brawler'])
+                    self.server.store.begin_battle(self.player['id'], self.battle.match_id,
+                                                   self.battle.map_id, self.battle.started_at)
+                    LOG.info('session=%s BOT_BATTLE_START player=%d match=%s map=%d',
+                             self.session, self.player['id'], self.battle.match_id, self.battle.map_id)
+                    if payload:  # Legacy clients request a serialized loading roster.
+                        self.send(20559, start_loading(self.player, self.battle))
+                elif kind == 14110:
+                    if self.battle is None or self.battle.completed:
+                        LOG.warning('session=%s BATTLE_RESULT_IGNORED no active match', self.session)
+                        continue
+                    result = read_result(payload, self.battle)
+                    progress = self.server.store.complete_battle(self.player['id'], self.battle.match_id, result)
+                    if progress is None:
+                        continue
+                    self.battle.completed = True
+                    self.player = progress['player']
+                    LOG.info('session=%s BOT_BATTLE_COMPLETE match=%s result=%d trophies_delta=%d',
+                             self.session, self.battle.match_id, result, progress['delta'])
+                    self.send(23456, battle_result(self.player, self.battle, result, progress))
+                elif kind == 14106:
+                    self.abandon_battle()
+                    self.send(20406)
                 elif kind in (14101, 14109):
+                    self.abandon_battle()
                     self.home()
                 elif kind == 10212:
                     name = (Reader(payload).string() or '').strip()
@@ -89,8 +119,15 @@ class Client(socketserver.BaseRequestHandler):
             LOG.exception('session=%s SERVER_ERROR', self.session)
 
     def finish(self):
+        self.abandon_battle()
         LOG.info('session=%s CLOSED player=%s', self.session,
                  self.player['id'] if self.player else None)
+
+    def abandon_battle(self):
+        if self.battle is not None and not self.battle.completed:
+            self.server.store.abandon_battle(self.player['id'], self.battle.match_id)
+            LOG.info('session=%s BOT_BATTLE_ABANDON match=%s', self.session, self.battle.match_id)
+        self.battle = None
 
 
 class Server(socketserver.ThreadingTCPServer):
