@@ -16,3 +16,4 @@ debuglog.txt.*
 *.jks
 USER_STATE.md
 HANDOFF.md
+start_server.bat
