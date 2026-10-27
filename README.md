@@ -1,43 +1,59 @@
 # Brawl Stars v29 — private server
 
-A private Python server for Brawl Stars v29, built from scratch, with a
-matching Android client hook. The server implements account creation,
-token-authenticated reconnects, LoginOk, home data, a starter Shelly
-inventory, an event slot, and keepalive replies. Bot-only Gem Grab is
-playable from the lobby's Play button. The Android client runs its native
-movement, shooting, damage, respawns, gem collection, and bot AI; Python
-tracks the active match and handles results and progression. There is one
-human and five bots, with no player matchmaking or PvP. Wins award 8
-trophies and 20 experience; losses/draws award 10 experience. Leaving
-early gives no reward. Most other home commands remain unimplemented.
+This is a private server for Brawl Stars v29, written from scratch in
+Python, with an Android client patched to talk to it instead of
+Supercell's servers. You can create an account, log in, sit in the lobby
+(Shelly, a starter inventory, an event slot), and actually play a match:
+bot-only Gem Grab, one human against five bots, with real movement,
+shooting, damage, respawns and gems running client-side. Python tracks the
+match and hands out the results — 8 trophies and 20 XP for a win, 10 XP
+for a loss or draw, nothing if you quit early. Most other home-screen
+features aren't built yet.
 
 The lobby uses v29's pink/purple Gift Shop theme (theme 15), matching the
 [Welcome to Starr Park update](https://supercell.com/en/games/brawlstars/blog/release-notes/welcome-to-starr-park/).
-Existing accounts on the old default theme are migrated once, preserving
-account data. The client hides the native account/server/mod information
-overlay; player names, balances, and other normal lobby labels remain visible.
+Old accounts get migrated off the default theme once, without losing
+anything. The client's native account/server/mod overlay is hidden, but
+normal lobby labels — name, balances, etc. — stay visible.
 
-## Run
+## Running the server
 
-Requires Python 3.10 or later; the server uses only the standard library.
+Needs Python 3.10+, nothing else — standard library only.
 
 ```powershell
 python server/test_server.py
 ```
 
-The listener defaults to port 9339. Accounts persist in
-`server/data/players.sqlite3`. An atomic `server/data/players.json` recovery
-snapshot is updated after each login or state change. When the SQLite file is
-absent, the server can rebuild it from that JSON snapshot. Preserve both files;
-they are private runtime data and are excluded from Git.
+Listens on port 9339 by default. Accounts live in
+`server/data/players.sqlite3`, with a JSON snapshot
+(`server/data/players.json`) kept in sync after every login or state
+change, so the server can rebuild the database from it if needed. Both
+files are private runtime data and stay out of Git — don't delete them.
 
-`debuglog.txt` records every connection, login, message type/length, error, and
-disconnect. It appends across logins and rotates at 5 MB with three older logs.
-Account tokens and packet payloads are not written to the log.
+`debuglog.txt` logs every connection, login, message, error and
+disconnect (no tokens, no raw payloads), rotating at 5 MB with three
+backups kept.
 
-See [client build notes](client_patch/README.md) for local build requirements.
-The original APK, native libraries, Android assets, tools, signing keys,
-databases, and debug logs are not included in the source repository.
+## Connecting the Android client
+
+The release APK is self-contained — it points at `127.0.0.1:9339` and
+never talks to the real Brawl Stars servers. With the tablet on USB or
+wireless debugging and platform-tools installed:
+
+```powershell
+adb install -r --abi armeabi-v7a brawl_v29.apk
+adb reverse tcp:9339 tcp:9339
+```
+
+Start the Python server first, then open Brawl V29. If ADB reconnects,
+redo the `adb reverse` line. The first launch may throw up an
+Android/game notice you'll need to dismiss. Want it reachable over the
+LAN instead of just the loopback forward? Rebuild with
+`--host YOUR_SERVER_LAN_IP`.
+
+Local build steps are in [client_patch/README.md](client_patch/README.md).
+The original APK, native libraries, Android assets, signing keys,
+databases and debug logs aren't in this repo.
 
 ## Tests
 
@@ -45,25 +61,25 @@ databases, and debug logs are not included in the source repository.
 python -m unittest discover -s server -v
 ```
 
-Tests cover native integer/boolean wire fixtures, fragmented TCP messages,
-parallel connections, authentication, reconnects, keepalive, and JSON recovery.
-Bot tests cover match ownership, duplicate results, abandoned matches, TCP
-start/result/return, and recovering progression/history from JSON. Device
-verification is also necessary for client/native protocol changes.
+Covers the wire format (ints, booleans, fragmented TCP, parallel
+connections), auth and reconnects, keepalive, and JSON recovery, plus
+battle-specific coverage: match ownership, duplicate results, abandoned
+matches, and the full start/result/return cycle. Anything touching the
+client's native protocol still needs a real device check on top of this.
 
 ## Protocol notes
 
-Messages use a 7-byte big-endian header: type (2), payload length (3), version
-(2). Signed variable integers reserve six bits in their first byte and use
-sign extension. Adjacent boolean fields share bits in one byte until the next
-non-boolean field. The home notification header requires an initial type field
-even when the notification count is zero.
+7-byte big-endian header on every message: type (2 bytes), payload
+length (3 bytes), version (2 bytes). Signed varints reserve six bits in
+their first byte and sign-extend. Adjacent booleans pack into shared bits
+until the next non-boolean field breaks the run. The home notification
+header needs its type field even at zero notifications — easy to miss.
 
-Public v29 protocol research was cross-checked against the
-[BS-V29 reference implementation](https://github.com/LekmaDev/BS-V29), with final
-field alignment checked against the local client's native decoder. No upstream
-server is needed at runtime.
+Protocol details were cross-checked against the
+[BS-V29 reference implementation](https://github.com/LekmaDev/BS-V29),
+with final field layout confirmed against the client's own native
+decoder. Nothing here talks to an upstream server at runtime.
 
-This is a private server, not an official or public release. Android game
-assets and other third-party components remain the property of their
-respective owners.
+This is a private server — not an official release, not for
+distribution. Android game assets and everything else third-party still
+belong to their original owners.
