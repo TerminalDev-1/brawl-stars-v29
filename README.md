@@ -81,6 +81,5 @@ Protocol details were cross-checked against the
 with final field layout confirmed against the client's own native
 decoder. Nothing here talks to an upstream server at runtime.
 
-This is a private server — not an official release, not for
-distribution. Android game assets and everything else third-party still
-belong to their original owners.
+This is a private server, not an official release. Android game assets
+and everything else third-party still belong to their original owners.
