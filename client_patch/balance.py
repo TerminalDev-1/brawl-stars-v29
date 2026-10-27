@@ -11,6 +11,8 @@ from pathlib import Path
 EDITS = [
     # Colette: flat 1000 damage per shot instead of 35% of the target's health.
     ('csv_logic/skills.csv', 'PercenterWeapon', 'PercentDamage', ''),
+    # Colette: reload 25% faster (1800 ms per shot -> 1440 ms).
+    ('csv_logic/skills.csv', 'PercenterWeapon', 'RechargeTime', '1440'),
     # Colette is hidden in v29 ("locked for Chronos"); make her obtainable.
     ('csv_logic/characters.csv', 'Percenter', 'LockedForChronos', ''),
 ]

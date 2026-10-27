@@ -52,7 +52,8 @@ Last updated: 2026-10-27.
 - Colette, Brawl Pass and Showdown fixes (2026-10-27):
   - Client build applies game-data edits from client_patch/balance.py: Colette's
     main attack does a flat 1000 damage (the percent-of-health damage is
-    removed) and her hidden flag is cleared so she appears in the collection.
+    removed), she reloads 25% faster (1800 ms -> 1440 ms per shot), and her
+    hidden flag is cleared so she appears in the collection.
   - The shop has a FREE COLETTE! offer until the player owns her. She never
     drops from boxes.
   - Brawl Pass season 2 (Starr Park / Colette) from milestones.csv: battles give
@@ -83,7 +84,9 @@ and installed on the tablet; not published as a release):
   and the Colette data edit on a copy of the assets).
 - On the tablet (scratch copy of the account): claimed FREE COLETTE!, Colette
   appeared as NEW with Brawlers 3/39, her stats show Damage 1000, and in the
-  training ground one shot took a 4000-health dummy to exactly 3000.
+  training ground one shot took a 4000-health dummy to exactly 3000. After the
+  reload change her stats show Reload Speed FAST (was NORMAL) and the ammo bar
+  refills in training; exact reload timing was not measured with a stopwatch.
 - Played Solo Showdown with Colette: 4th place was accepted with +6 trophies and
   +16 tokens. Claimed free Brawl Pass tiers (Big Box), bought the pass for 169
   gems and claimed a premium Mega Box; claimed tiers show checkmarks after relog.
