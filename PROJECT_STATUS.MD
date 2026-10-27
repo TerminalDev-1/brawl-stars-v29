@@ -39,6 +39,16 @@ Last updated: 2026-10-27.
   Progress, unlocked brawlers, power points, and per-brawler trophies are saved
   and sent back in home data after a relog. Claims beyond the player's highest
   trophies are refused and the home screen is resynchronized.
+- Brawlers menu and Shop work (2026-10-27). Home commands batched in 14102 are
+  parsed one by one (home_commands.py) and repeated on the server so they
+  persist: selecting a brawler and its skin (525/506), upgrading a brawler (520,
+  v29 coin and power point costs, lifetime power point totals as the client
+  counts them), buying Big/Mega Boxes for gems (500, contents delivered with
+  24111/203, boxes can drop new non-common brawlers), the Token Doubler (509),
+  the 1000-coin pack (521), and daily deals (519). Daily deals offer power
+  points for owned brawlers for coins, refresh at midnight, and show Purchased
+  once bought. Purchases the player can't afford are refused and the home
+  screen is resent.
 - Solo Showdown (Skull Creek) is the second event slot next to Gem Grab. The
   client unlocks it at the 30-trophy Trophy Road step, as in the original game.
   Matches run with nine bots; the result screen shows the placement, and rewards
@@ -50,6 +60,18 @@ Last updated: 2026-10-27.
   and raw account payloads are not logged.
 
 ## Verification evidence
+
+Verified on 2026-10-27 for the Brawlers menu and Shop (server-only change):
+
+- All 28 automated server tests passed, including 9 new tests that replay
+  command batches captured from the tablet.
+- On the tablet (scratch copy of the account): selected Nita and later Shelly,
+  bought a Big Box (coins and power points delivered), a Token Doubler, the
+  1000-coin pack and a Nita daily deal, and upgraded Nita and Shelly to power 2.
+  After restarting the app, the selected brawler, power levels, power point
+  bars, coins, gems, Token Doubler and the Purchased deal were all unchanged.
+- The real account logged in with the new shop and its own daily deal, with no
+  crash. Gem packs are real-money Google Play purchases and are not supported.
 
 Verified on 2026-10-27 for Trophy Road and Showdown (server-only change; the
 v0.2.0 APK is unchanged):
@@ -105,10 +127,12 @@ an internet-hosted public backend.
   combat. PvP and player matchmaking are not implemented.
 - Playable events are Gem Grab and Solo Showdown. Duo Showdown results are
   accepted by the server but have not been tested on the device.
-- Other home commands (brawler selection, shop, Brawl Pass, upgrades, profile)
-  are still unimplemented; they are logged as UNIMPLEMENTED command/type entries.
-  Trophies are credited to the brawler reported in the match result.
-- Power points are stored and shown, but upgrading a brawler is not implemented.
+- Brawl Pass, profile, club, friends, chat, skins beyond defaults, gadgets and
+  star powers are still unimplemented; unknown commands are logged as
+  UNIMPLEMENTED with their bytes. Trophies are credited to the brawler reported
+  in the match result. Gem packs (real money) cannot be bought.
+- A Gem Grab or Showdown match played with a brawler other than Shelly has not
+  yet been checked on the device.
 - The experimental stock native-library profile still has its original
   startup failure. Use the matched reference libraries and companion
   initialization described in client_patch/README.md.

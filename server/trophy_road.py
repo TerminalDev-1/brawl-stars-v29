@@ -1,6 +1,7 @@
 """v29 Trophy Road table (milestones.csv track 6) and reward delivery."""
 import secrets
 
+from brawlers import BOX_RARITY_WEIGHTS, BRAWLERS, add_points, owned, points_needed
 from protocol import Writer
 
 # Reward types used by milestones.csv.
@@ -13,9 +14,6 @@ SINGLE_REWARD = 100
 
 # Item types inside a delivery.
 ITEM_BRAWLER, ITEM_TOKEN_DOUBLER, ITEM_POWER_POINTS, ITEM_GOLD, ITEM_GEMS = 1, 2, 6, 7, 8
-
-# character ID -> unlock card row (cards.csv) for Shelly and Trophy Road brawlers.
-UNLOCK_CARDS = {0: 0, 1: 4, 2: 8, 3: 12, 7: 28, 8: 32, 9: 36, 14: 56, 22: 110, 27: 177, 30: 194}
 
 # (trophies required, reward type, amount, character ID) for milestone indices 0-93.
 _EARLY = [
@@ -48,29 +46,56 @@ _EARLY = [
 TROPHY_ROAD = _EARLY + [(t, MEGA_BOX if t % 1000 == 0 else BIG_BOX, 1, None)
                         for t in range(15000, 50001, 500)]
 
-POWER_POINT_CAP = 1410  # Points needed to take a brawler from power 1 to 9.
-
-
 def unlocked(player):
-    return player.setdefault('unlocked', [0])
+    return owned(player)
 
 
-def add_points(player, brawler, amount):
-    points = player.setdefault('power_points', {})
-    points[str(brawler)] = points.get(str(brawler), 0) + amount
+def _new_brawler(player, scale):
+    """Roughly v29 drop odds: about 4% per Brawl Box worth of contents."""
+    if secrets.randbelow(1000) >= 40 * scale:
+        return None
+    candidates = [b for b, (_, rarity) in BRAWLERS.items()
+                  if rarity in BOX_RARITY_WEIGHTS and b not in owned(player)]
+    if not candidates:
+        return None
+    weights = [BOX_RARITY_WEIGHTS[BRAWLERS[b][1]] for b in candidates]
+    pick = secrets.randbelow(sum(weights))
+    for brawler, weight in zip(candidates, weights):
+        if pick < weight:
+            return brawler
+        pick -= weight
+    return None
 
 
-def _box_items(player, box):
-    """Random box contents: coins, power points, sometimes gems."""
+def box_items(player, box):
+    """Random box contents: coins, power points, sometimes gems or a new brawler."""
     scale = {BRAWL_BOX: 1, BIG_BOX: 3, MEGA_BOX: 10}[box]
-    owned = unlocked(player)
     items = [(ITEM_GOLD, None, scale * (15 + secrets.randbelow(26)))]
-    picks = owned if len(owned) <= scale else [owned[secrets.randbelow(len(owned))] for _ in range(scale)]
+    hungry = [b for b in owned(player) if points_needed(player, b) > 0]
+    picks = hungry if len(hungry) <= scale else [hungry[secrets.randbelow(len(hungry))] for _ in range(scale)]
     for brawler in dict.fromkeys(picks):
-        items.append((ITEM_POWER_POINTS, brawler, scale * (7 + secrets.randbelow(14))))
+        amount = min(scale * (7 + secrets.randbelow(14)), points_needed(player, brawler))
+        items.append((ITEM_POWER_POINTS, brawler, amount))
     if secrets.randbelow(4) == 0:
         items.append((ITEM_GEMS, None, scale * (1 + secrets.randbelow(3))))
+    brawler = _new_brawler(player, scale)
+    if brawler is not None:
+        items.append((ITEM_BRAWLER, brawler, 1))
     return items
+
+
+def grant(player, items):
+    for item, brawler, count in items:
+        if item == ITEM_GOLD:
+            player['gold'] = player.get('gold', 0) + count
+        elif item == ITEM_GEMS:
+            player['gems'] = player.get('gems', 0) + count
+        elif item == ITEM_POWER_POINTS:
+            add_points(player, brawler, count)
+        elif item == ITEM_BRAWLER and brawler not in owned(player):
+            owned(player).append(brawler)
+        elif item == ITEM_TOKEN_DOUBLER:
+            player['token_doubler'] = player.get('token_doubler', 0) + count
 
 
 def claim(player):
@@ -85,7 +110,7 @@ def claim(player):
     if player.get('highest_trophies', player['trophies']) < required:
         return None
     if kind in DELIVERY_BOX:
-        box, items = DELIVERY_BOX[kind], _box_items(player, kind)
+        box, items = DELIVERY_BOX[kind], box_items(player, kind)
     elif kind == BRAWLER:
         if character in unlocked(player):  # Already owned: give the matching points instead.
             box, items = SINGLE_REWARD, [(ITEM_POWER_POINTS, character, 100)]
@@ -99,23 +124,16 @@ def claim(player):
         box, items = SINGLE_REWARD, [(ITEM_TOKEN_DOUBLER, None, amount)]
     else:  # Game-mode and feature unlocks have nothing to hand out.
         box, items = SINGLE_REWARD, []
-    for item, brawler, count in items:
-        if item == ITEM_GOLD:
-            player['gold'] = player.get('gold', 0) + count
-        elif item == ITEM_GEMS:
-            player['gems'] = player.get('gems', 0) + count
-        elif item == ITEM_POWER_POINTS:
-            add_points(player, brawler, count)
-        elif item == ITEM_BRAWLER:
-            unlocked(player).append(brawler)
-        elif item == ITEM_TOKEN_DOUBLER:
-            player['token_doubler'] = player.get('token_doubler', 0) + count
+    grant(player, items)
     player['trophy_road'] = index + 2
     return index, box, items
 
 
-def delivery_command(box, items, track, new_counter):
-    """AvailableServerCommand (24111) carrying LogicGiveDeliveryItemsCommand (203)."""
+def delivery_command(box, items, track=None, new_counter=0):
+    """AvailableServerCommand (24111) carrying LogicGiveDeliveryItemsCommand (203).
+
+    Trophy Road deliveries also name the reward track and its new progress.
+    """
     w = Writer()
     w.values(203, 0, 1, box, len(items))
     for item, brawler, count in items:
@@ -125,6 +143,7 @@ def delivery_command(box, items, track, new_counter):
         else:
             w.reference(16, brawler)
         w.values(item, 0, 0, 0, 0)
-    w.boolean(False)
-    w.values(track, new_counter, 0, 1)
+    if track is not None:
+        w.boolean(False)
+        w.values(track, new_counter, 0, 1)
     return w.bytes()

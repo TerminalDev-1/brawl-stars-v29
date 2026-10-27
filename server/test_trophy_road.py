@@ -23,6 +23,14 @@ def player(trophies):
 
 
 class TrophyRoadTests(unittest.TestCase):
+    def setUp(self):
+        # Box brawler drops are random; keep these tests deterministic.
+        self.drop = trophy_road._new_brawler
+        trophy_road._new_brawler = lambda player, scale: None
+
+    def tearDown(self):
+        trophy_road._new_brawler = self.drop
+
     def test_claims_follow_the_v29_road_in_order(self):
         p = player(24)
         index, box, items = trophy_road.claim(p)

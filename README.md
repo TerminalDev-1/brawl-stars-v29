@@ -11,8 +11,12 @@ tracks the match and hands out the results — 8 Trophies and 20 XP for a
 Gem Grab win, 10 XP for a loss or draw, up to 10 Trophies for a Showdown
 placement, nothing if you quit early. Trophy Road rewards can be collected:
 boxes, new Brawlers like Nita, coins and power points. Showdown unlocks at
-30 trophies on the Trophy Road, like the original game. Most other
-home-screen features aren't built yet.
+30 trophies on the Trophy Road, like the original game. In the Brawlers
+menu you can pick any Brawler you own and upgrade it with coins and power
+points. The Shop sells Big and Mega Boxes, the Token Doubler and a coin
+pack for gems, plus daily deals (power points for coins) that refresh at
+midnight. Gem packs cost real money in the original game and don't work
+here. Brawl Pass, clubs, friends and chat aren't built yet.
 
 The lobby uses v29's pink/purple Gift Shop theme (theme 15), matching the
 [Welcome to Starr Park update](https://supercell.com/en/games/brawlstars/blog/release-notes/welcome-to-starr-park/).

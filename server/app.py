@@ -11,7 +11,8 @@ from messages import home_data, login_ok
 from battles import BotBattle, battle_result, read_result, start_loading
 from protocol import MAX_PACKET, Reader, Writer, packet, recv_exact
 from storage import AccountStore
-import trophy_road
+import home_commands
+import shop
 
 ROOT = Path(__file__).resolve().parent.parent
 LOG = logging.getLogger('v29')
@@ -31,6 +32,8 @@ class Client(socketserver.BaseRequestHandler):
         LOG.debug('session=%s SEND type=%d length=%d version=%d', self.session, kind, len(body), version)
 
     def home(self):
+        if shop.daily_offers(self.player):
+            self.server.store.save(self.player)
         self.send(24101, home_data(self.player))
 
     def login(self, payload):
@@ -126,36 +129,23 @@ class Client(socketserver.BaseRequestHandler):
 
     def client_commands(self, payload):
         """EndClientTurn: a batch of home-screen commands."""
-        r = Reader(payload)
-        r.vint()
-        tick, _checksum, count = r.vint(), r.vint(), r.vint()
-        for _ in range(count):
-            command = r.vint()
-            if command == 203:  # Client acknowledging a delivery the server sent.
-                LOG.debug('session=%s DELIVERY_ACK tick=%d', self.session, tick)
-                return
-            if command != 517:
-                # Bodies differ per command; without a decoder the rest can't be read.
-                LOG.debug('session=%s UNIMPLEMENTED command=%d tick=%d', self.session, command, tick)
-                return
-            r.vint(), r.vint(), r.vint(), r.vint()  # Command tick and executor.
-            track = r.vint()
-            if track != 6:
-                LOG.info('session=%s CLAIM_IGNORED track=%d', self.session, track)
-                continue
-            claimed = trophy_road.claim(self.player)
-            if claimed is None:
-                LOG.warning('session=%s TROPHY_ROAD_NOT_CLAIMABLE counter=%d highest=%d', self.session,
-                            self.player.get('trophy_road', 1),
-                            self.player.get('highest_trophies', self.player['trophies']))
-                self.home()  # Resynchronize the client's view of Trophy Road.
-                continue
-            index, box, items = claimed
+        commands, unknown = home_commands.parse(payload)
+        result = home_commands.Result()
+        for command in commands:
+            home_commands.apply(self.player, command, result)
+        home_commands.finish(self.player, result)
+        if result.changed:
             self.server.store.save(self.player)
-            LOG.info('session=%s TROPHY_ROAD_CLAIM player=%d milestone=%d box=%d items=%s',
-                     self.session, self.player['id'], index, box,
-                     [(item, brawler, amount) for item, brawler, amount in items])
-            self.send(24111, trophy_road.delivery_command(box, items, track, index + 2))
+        for note in result.notes:
+            LOG.info('session=%s COMMAND player=%d %s', self.session, self.player['id'], note)
+        for kind, body in result.replies:
+            self.send(kind, body)
+        if result.resync:
+            self.home()  # The client's view disagreed with the server; resend the truth.
+        if unknown == 203:  # Client acknowledging a delivery the server sent.
+            LOG.debug('session=%s DELIVERY_ACK', self.session)
+        elif unknown is not None:
+            LOG.debug('session=%s UNIMPLEMENTED command=%d body=%s', self.session, unknown, payload.hex())
 
     def finish(self):
         self.abandon_battle()

@@ -1,7 +1,8 @@
 """Minimal v29 login and home-state serialization, without battle simulation."""
 import time
 from protocol import Writer
-from trophy_road import UNLOCK_CARDS
+from brawlers import UNLOCK_CARDS
+import shop
 
 GEM_GRAB_MAP, SHOWDOWN_MAP = 7, 13  # locations.csv: Hard Rock Mine, Skull Creek
 
@@ -48,15 +49,15 @@ def home_data(p):
              220 + p.get('experience', 0))
     w.reference(28, p['icon'])
     w.reference(43, p['name_color'])
-    w.values(0, 1)
-    w.reference(29, 0)
+    w.values(0, 1)  # selected skin of the selected brawler
+    w.reference(29, p.get('skins', {}).get(str(p['brawler']), 0))
     w.values(0, 0, 0, best, 0, 0)
     w.boolean(False)
-    w.values(0, 3600000, 0, 3600000, 0)
+    w.values(p.get('token_doubler', 0), 3600000, 0, 3600000, 0)  # token doubler, season timers
     w.boolean(True)
     w.boolean(True)
     w.values(0, 4, 2, 2, 2, 0, 0)
-    w.vint(0)  # no shop offers
+    shop.encode_offers(w, p)
     w.values(0, 200, 0, 0, 0, 0)  # ads, tokens, timers, tickets
     w.reference(16, p['brawler'])
     w.string('GB')
@@ -111,7 +112,7 @@ def home_data(p):
         w.reference(table, row)
         w.vint(amount)
     for values in [trophies, trophies, None, {b: points.get(str(b), 0) for b in owned},
-                   {b: 0 for b in owned}, None, None]:
+                   {b: p.get('power_levels', {}).get(str(b), 0) for b in owned}, None, None]:
         values = values or {}
         w.vint(len(values))
         for brawler, amount in values.items():
