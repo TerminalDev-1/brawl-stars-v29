@@ -3,12 +3,13 @@
 This is a private server for Brawl Stars v29, written from scratch in
 Python, with an Android client patched to talk to it instead of
 Supercell's servers. You can create an account, log in, sit in the lobby
-(Shelly, a starter inventory, an event slot), and actually play a match:
-bot-only Gem Grab, one human against five bots, with real movement,
-shooting, damage, respawns and gems running client-side. Python tracks the
-match and hands out the results — 8 trophies and 20 XP for a win, 10 XP
-for a loss or draw, nothing if you quit early. Most other home-screen
-features aren't built yet.
+(Shelly as your starting Brawler, Coins, Gems, an event slot), and
+actually play a match: bot-only Gem Grab, 3v3, you and two bot teammates
+against a team of three bots, with real movement, shooting, damage,
+respawns and gems running client-side. Python tracks the match and hands
+out the results — 8 Trophies and 20 XP for a win, 10 XP for a loss or
+draw, nothing if you quit early. Most other home-screen features aren't
+built yet.
 
 The lobby uses v29's pink/purple Gift Shop theme (theme 15), matching the
 [Welcome to Starr Park update](https://supercell.com/en/games/brawlstars/blog/release-notes/welcome-to-starr-park/).
