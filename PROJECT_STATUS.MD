@@ -30,7 +30,8 @@ Last updated: 2026-10-28.
   keepalive work with the matched v29 Android client.
 - The lobby uses the original pink/purple Gift Shop theme. The native debug
   overlay is hidden while normal player and balance labels remain visible.
-- Play starts Gem Grab on Hard Rock Mine with one human and five bots.
+- Play starts a bot match in the selected event (see Events below) with one
+  human and five bots (nine in Solo Showdown).
   Native client simulation handles movement, shooting, bot AI, damage,
   respawns, gems, countdown, and match completion.
 - Python tracks active matches, validates reported participants and teams,
@@ -103,8 +104,23 @@ Last updated: 2026-10-28.
   - Showdown results below 2nd place were rejected (the client reports the
     placement in the result field too). They are now accepted, and the results
     screen shows the brawler's own trophies and the Token Doubler balance.
-- Solo Showdown (Skull Creek) is the second event slot next to Gem Grab. The
-  client unlocks it at the 30-trophy Trophy Road step, as in the original game.
+- Events (2026-10-28, server/events.py): four slots, Gem Grab, Showdown, Heist
+  and Brawl Ball (the client titles the fourth slot "Team Events"). Each slot
+  moves to its next map every 5 hours, and the client's "New Event in" timer
+  counts down to the change. Rotations: Gem Grab - Hard Rock Mine, Crystal
+  Arcade, Merch Fort, Undermine, Double Swoosh, Minecart Madness, Snake Shop;
+  Showdown - Scorched Stone, Rockwall Brawl, Feast or Famine, Double Trouble,
+  Stormy Plains, Skull Creek; Heist - Kaboom Canyon, Safe Zone, G.G. Mortuary,
+  Hot Potato, Twist and Shoot, Pit Stop, Gift Gems; Brawl Ball - Backyard Bowl,
+  Triple Dribble, Sneaky Fields, Super Stadium, Center Stage, Sunny Soccer,
+  Field Goal. Heist and Brawl Ball use the Gem Grab result handling and
+  rewards (3v3, win/loss/draw). Map IDs are the client's location IDs, which
+  skip the blank continuation rows of locations.csv: from CSV row 75 on, the
+  ID is lower than the row number (Double Swoosh is row 128 but ID 115).
+- The client unlocks Showdown, Heist and Team Events through the Trophy Road
+  event-unlock steps (at 30, 150, 350 and 800 trophies), as in the original
+  game. Until the matching step is claimed the slot shows a lock.
+- Solo Showdown: the client unlocks it at the 30-trophy Trophy Road step.
   Matches run with nine bots; the result screen shows the placement, and rewards
   are 10/8/7/6/4/2/2/1/0/0 trophies by rank with no trophy loss.
 - SQLite stores accounts, match history, and progression. Atomic JSON snapshots
@@ -114,6 +130,19 @@ Last updated: 2026-10-28.
   and raw account payloads are not logged.
 
 ## Verification evidence
+
+Verified on 2026-10-28 for the four event slots and 5-hour map rotation (server
+only, no new APK):
+
+- All 47 automated server tests passed (new: rotation order, 5-hour changes,
+  wrap-around, countdown, accepted result maps, four slots in home data).
+- On the tablet the event picker shows Gem Grab (Hard Rock Mine), Showdown
+  (Scorched Stone), Heist and Team Events with a "New Event in" countdown. With
+  the Trophy Road temporarily marked past the event unlocks (then restored to
+  the account's real progress), a bot match started on every map in all four
+  rotations (27 maps). Each loaded in the right mode with bots playing, and
+  Exit returned home. No full Heist or Brawl Ball match was played to the end,
+  so their result screens were not checked on the tablet.
 
 Verified on 2026-10-28 for the fully kitted Colette offer and the trophy bar
 fill (server only; the v0.3.2 APK is unchanged, so no new release):
@@ -233,8 +262,11 @@ loaded with saved progress.
 
 - Battles use native local bot simulation; Python does not simulate real-time
   combat. PvP and player matchmaking are not implemented.
-- Playable events are Gem Grab and Solo Showdown. Duo Showdown results are
-  accepted by the server but have not been tested on the device.
+- Playable events are Gem Grab, Solo Showdown, Heist and Brawl Ball. Duo
+  Showdown results are accepted by the server but have not been tested on the
+  device. Home data is only resent on the client's next home load, so a map
+  change while the player stays on the home screen shows up after the next
+  battle or reopening the app.
 - Brawl Pass quests, pins and selecting the pass skins are not implemented;
   the 249-gem Brawl Pass bundle and buying tiers were not tested on the device.
   Colette's Super still uses its percent damage (not changeable through game

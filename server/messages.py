@@ -3,9 +3,9 @@ import time
 from protocol import Writer
 from brawlers import UNLOCK_CARDS
 import brawl_pass
+import events
 import shop
 
-GEM_GRAB_MAP, SHOWDOWN_MAP = 7, 13  # locations.csv: Hard Rock Mine, Skull Creek
 
 
 def login_ok(player, token):
@@ -35,7 +35,7 @@ def login_ok(player, token):
 
 
 def event(w, slot, map_id):
-    w.values(slot, slot, 0, 3600, 10)
+    w.values(slot, slot, 0, events.seconds_left(), 10)  # Seconds until the next map.
     w.reference(15, map_id)
     w.vint(2)
     w.string('')
@@ -83,10 +83,12 @@ def home_data(p):
     w.vint(0)  # emotes
     # Regional configuration and event slots.
     w.values(int(time.time()), 100, 10, 30, 3, 80, 10, 40, 1500, 500, 50, 999900, 0)
-    w.values(3, 0, 1, 2)  # event slot IDs
-    w.vint(2)
-    event(w, 1, GEM_GRAB_MAP)
-    event(w, 2, SHOWDOWN_MAP)
+    maps = events.current_maps()
+    w.vint(len(maps) + 1)  # Event slot IDs, 0 to 4.
+    w.values(*range(len(maps) + 1))
+    w.vint(len(maps))
+    for slot, map_id in enumerate(maps, start=1):  # Gem Grab, Showdown, Heist, Brawl Ball
+        event(w, slot, map_id)
     w.vint(0)  # upcoming events
     for values in [(20, 35, 75, 140, 290, 480, 800, 1250), (1, 2, 3, 4, 5, 10, 15, 20),
                    (10, 30, 80), (6, 20, 60), (10,), (1000,)]:

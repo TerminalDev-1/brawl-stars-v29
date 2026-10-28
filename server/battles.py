@@ -4,11 +4,15 @@ import secrets
 import time
 import uuid
 
+import events
 from protocol import Reader, Writer
 
-GEM_GRAB_MAPS = {7}
-SOLO_SHOWDOWN_MAPS = {13}  # locations.csv Survival1 (Skull Creek)
-DUO_SHOWDOWN_MAPS = {28, 34, 35, 36, 37, 109}  # enabled SurvivalTeam locations
+# 3v3 modes share the result format: Gem Grab, Heist and Brawl Ball.
+TEAM_MAPS = (set(events.GEM_GRAB_ROTATION) | set(events.HEIST_ROTATION)
+             | set(events.BRAWL_BALL_ROTATION))
+SOLO_SHOWDOWN_MAPS = set(events.SHOWDOWN_ROTATION)
+# Duo variants (SurvivalTeam locations) of the Showdown rotation maps.
+DUO_SHOWDOWN_MAPS = {28, 34, 35, 36, 37, 96}
 SHOWDOWN_MAPS = SOLO_SHOWDOWN_MAPS | DUO_SHOWDOWN_MAPS
 
 
@@ -72,7 +76,7 @@ def read_result(payload, battle):
     result, mode, rank = r.vint(), r.vint(), r.vint()
     table, map_id, players = r.vint(), r.vint(), r.vint()
     showdown = map_id in SHOWDOWN_MAPS
-    if table != 15 or map_id not in GEM_GRAB_MAPS | SHOWDOWN_MAPS:
+    if table != 15 or map_id not in TEAM_MAPS | SHOWDOWN_MAPS:
         raise ValueError('invalid result map')
     if showdown:
         # Showdown reports the placement in both the result and rank fields.
