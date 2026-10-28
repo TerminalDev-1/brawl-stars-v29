@@ -109,7 +109,8 @@ Last updated: 2026-10-28.
   and Brawl Ball (the client titles the fourth slot "Team Events"). Each slot
   moves to its next map every 5 hours, and the client's "New Event in" timer
   counts down to the change. Rotations: Gem Grab - Hard Rock Mine, Crystal
-  Arcade, Merch Fort, Undermine, Double Swoosh, Minecart Madness, Snake Shop;
+  Arcade, Merch Fort, Undermine, Double Swoosh, Snake Shop (Minecart Madness
+  removed at the user's request);
   Showdown - Scorched Stone, Rockwall Brawl, Feast or Famine, Double Trouble,
   Stormy Plains, Skull Creek; Heist - Kaboom Canyon, Safe Zone, G.G. Mortuary,
   Hot Potato, Twist and Shoot, Pit Stop, Gift Gems; Brawl Ball - Backyard Bowl,

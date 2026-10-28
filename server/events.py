@@ -14,7 +14,6 @@ GEM_GRAB_ROTATION = (
     10,   # Merch Fort
     11,   # Undermine
     115,  # Double Swoosh
-    122,  # Minecart Madness
     148,  # Snake Shop
 )
 SHOWDOWN_ROTATION = (
