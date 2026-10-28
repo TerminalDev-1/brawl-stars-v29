@@ -52,7 +52,10 @@ def home_data(p):
     w.reference(43, p['name_color'])
     w.values(0, 1)  # selected skin of the selected brawler
     w.reference(29, p.get('skins', {}).get(str(p['brawler']), 0))
-    w.values(0, 0, 0, best, 0, 0)
+    # Highest trophies the home screen last showed. When lower than best, the
+    # client fills the trophy bar up from it, through each rank and Trophy Road
+    # reward, while the trophies fly in.
+    w.values(0, 0, 0, min(p.get('trophies_seen', best), best), 0, 0)
     w.boolean(False)
     w.values(p.get('token_doubler', 0), 3600000, 0, 3600000, 0)  # token doubler, season timers
     w.boolean(True)
@@ -115,12 +118,16 @@ def home_data(p):
     for table, row, amount in [(5, 1, 0), (5, 8, p['gold']), (5, 9, 0), (5, 10, 0)]:
         w.reference(table, row)
         w.vint(amount)
-    for values in [trophies, trophies, None, {b: points.get(str(b), 0) for b in owned},
-                   {b: p.get('power_levels', {}).get(str(b), 0) for b in owned}, None, None]:
+    # Per-brawler lists keyed by character, then owned star powers and gadgets
+    # keyed by card, then an empty list.
+    for table, values in [(16, trophies), (16, trophies), (16, None),
+                          (16, {b: points.get(str(b), 0) for b in owned}),
+                          (16, {b: p.get('power_levels', {}).get(str(b), 0) for b in owned}),
+                          (23, {card: 1 for card in p.get('cards', [])}), (16, None)]:
         values = values or {}
         w.vint(len(values))
-        for brawler, amount in values.items():
-            w.reference(16, brawler)
+        for key, amount in values.items():
+            w.reference(table, key)
             w.vint(amount)
     w.values(p['gems'], 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, int(time.time()))
     return w.bytes()

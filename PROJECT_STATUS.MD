@@ -1,6 +1,6 @@
 # Project status
 
-Last updated: 2026-10-27.
+Last updated: 2026-10-28.
 
 ## Current release and repository
 
@@ -70,14 +70,31 @@ Last updated: 2026-10-27.
     (20% of max health): her dash type always deals percent damage, and its
     Damage field only applies to special targets. A flat 2000 was tried on the
     device and still dealt percent damage, so it was reverted.
-  - The shop always has a FREE COLETTE! offer. Before she is owned it unlocks
-    her; afterwards it gives 100 Colette power points once per day (the client
-    hides it after it is claimed until the daily reset). She never drops from
-    boxes.
+  - FREE COLETTE! (changed 2026-10-28): claiming it gives Colette fully
+    upgraded: power 9 with her star power (card 300) and gadget (card 302),
+    which the client shows as Power 10 with 1/1 star power and 1/1 gadget. If
+    she is already owned below that, the offer shows the power points she
+    still needs and maxes her the same way. Once she is maxed the claimed offer
+    stays shown as claimed until the daily reset, then disappears. Star powers
+    and gadgets are sent in home data's per-card list (the sixth per-brawler
+    list, keyed by card). She never drops from boxes.
+  - Limitation: the client only shows the new power level on its next home
+    load (after a battle or reopening the app). Until then it shows the
+    delivered power points at her old level. Resending home data mid-session
+    crashed the client (from the reward screen immediately, and from the shop
+    about 20 s later), so the server does not do that. An upgrade the client
+    sends for an already maxed brawler is ignored without a charge or resync.
 - Trophy fly-in animation (2026-10-27): after a battle that gains trophies, home
   data carries the trophies won (int-value record 4) once, and the home screen
   plays the trophy count-up animation. Verified on the tablet: the counter went
   51 -> 61 with +10 flying in after a Showdown win; the animation plays once.
+- Trophy bar fill (2026-10-28): home data also carries the highest trophies the
+  home screen last showed (fourth value after the skin list, previously the
+  current highest). After a gain the server sends the highest trophies from
+  before the battle once, and the client fills the trophy bar from there while
+  the trophies fly in: it starts at the old rank, cycles the Trophy Road
+  reward icons as each is passed, pops the rank-up icon, and fills the new
+  rank's bar.
   - Brawl Pass season 2 (Starr Park / Colette) from milestones.csv: battles give
     tokens (Token Doubler doubles them), free and premium tiers can be claimed
     once each (deliveries carry season 2, which the client requires), the pass
@@ -97,6 +114,25 @@ Last updated: 2026-10-27.
   and raw account payloads are not logged.
 
 ## Verification evidence
+
+Verified on 2026-10-28 for the fully kitted Colette offer and the trophy bar
+fill (server only; the v0.3.2 APK is unchanged, so no new release):
+
+- All 41 automated server tests passed (new: fully kitted claim, maxing an owned
+  Colette, ignored upgrade of a maxed brawler, star power cards in home data,
+  and the trophies-seen value queued by a battle win).
+- On the tablet (Brawl V29 app, com.brawlv29.client): the offer showed
+  +1410 power points, the claim showed the reward screen, the app stayed up
+  through the shop and home, and after reopening Colette showed Power 10 with
+  star power 1/1 and gadget 1/1. In a Gem Grab match she had 4480 health
+  (3200 x 1.4) and her gadget fired (3 -> 2 uses, a 1792 hit); Exit returned
+  home without a reward.
+- Trophy bar, recorded on screen at 6 fps with +500 queued (1746 -> 2246): the
+  widget started at 1746 in the orange rank III, the bar filled past the Trophy
+  Road reward icons, switched to silver rank I with the rank-up pop near 2106,
+  and filled to 2246. It played once. The rank-up sound was not checked
+  (screen recordings have no audio). The battle path that queues the value is
+  covered by a unit test; a winning match was not played on the tablet.
 
 Verified on 2026-10-27 for the second Colette update and the trophy animation
 (published as v0.3.1):

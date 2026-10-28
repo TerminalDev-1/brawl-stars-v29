@@ -36,6 +36,8 @@ class Client(socketserver.BaseRequestHandler):
         self.send(24101, home_data(self.player))
         if self.player.pop('trophy_animation', None):
             changed = True  # The fly-in animation plays once.
+        if self.player.pop('trophies_seen', None) is not None:
+            changed = True  # So does the trophy bar filling up.
         if changed:
             self.server.store.save(self.player)
 

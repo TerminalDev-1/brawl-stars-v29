@@ -24,24 +24,33 @@ def seconds_left():
     return int((tomorrow - now).total_seconds())
 
 
-FREE_COLETTE_POINTS = 100  # Daily gift once Colette is owned.
-
-
 def free_colette(player):
-    """The FREE COLETTE! offer is always in the shop.
+    """The FREE COLETTE! offer stays in the shop until she is fully kitted.
 
-    Before she is owned it unlocks her; afterwards it gives her power points
-    (once per day, like the other daily offers). Returns True if it changed.
+    Claiming it gives Colette at power 9 with her star powers and gadget. If
+    she is already owned below that, it shows the power points she still
+    needs and maxes her out the same way. Returns True if it changed.
     """
     items = player['offers']['items']
     index = next((i for i, o in enumerate(items) if o.get('section') == SECTION_SPECIAL), None)
+    if brawlers.maxed(player, COLETTE):
+        if index is None or index in player['offers'].get('bought', []):
+            # Keep a claimed offer until the daily reset, like the other
+            # offers; the client already shows it as claimed.
+            return False
+        del items[index]
+        bought = player['offers'].get('bought', [])
+        player['offers']['bought'] = [i if i < index else i - 1 for i in bought if i != index]
+        return True
     if COLETTE in brawlers.owned(player):
-        amount = min(FREE_COLETTE_POINTS, brawlers.points_needed(player, COLETTE)) or FREE_COLETTE_POINTS
+        amount = brawlers.points_needed(player, COLETTE) or 1
         offer = {'type': OFFER_POWER_POINTS, 'amount': amount, 'brawler': COLETTE,
                  'currency': CURRENCY_GEMS, 'cost': 0, 'section': SECTION_SPECIAL}
     else:
         offer = {'type': OFFER_BRAWLER, 'amount': 1, 'brawler': COLETTE,
                  'currency': CURRENCY_GEMS, 'cost': 0, 'section': SECTION_SPECIAL}
+    if index is not None and index in player['offers'].get('bought', []):
+        player['offers']['bought'].remove(index)  # A new offer, so it can be claimed again.
     if index is None:
         items.append(offer)
         return True
@@ -121,4 +130,6 @@ def buy(player, index):
     else:
         delivered = [(trophy_road.ITEM_POWER_POINTS, offer['brawler'], offer['amount'])]
     trophy_road.grant(player, delivered)
+    if offer.get('section') == SECTION_SPECIAL and offer['brawler'] == COLETTE:
+        brawlers.max_out(player, COLETTE)
     return delivered

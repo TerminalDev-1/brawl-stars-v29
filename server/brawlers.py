@@ -24,6 +24,14 @@ BOX_RARITY_WEIGHTS = {'rare': 50, 'super_rare': 25, 'epic': 13, 'mega_epic': 8, 
 UPGRADE_POINTS = (20, 30, 50, 80, 130, 210, 340, 550)
 UPGRADE_GOLD = (20, 35, 75, 140, 290, 480, 800, 1250)
 MAX_POWER_POINTS = sum(UPGRADE_POINTS)
+MAX_LEVEL = len(UPGRADE_POINTS)  # Native numbering: 8 is power 9.
+
+# Star power and gadget cards (cards.csv rows) a fully kitted brawler owns.
+EXTRA_CARDS = {
+    # Colette: her v29 star power (card 300) and gadget (302). Card 301, her
+    # second star power, is marked unreleased and the client ignores it.
+    39: (300, 302),
+}
 
 
 def owned(player):
@@ -53,6 +61,28 @@ def points_needed(player, brawler):
 def add_points(player, brawler, amount):
     stored = player.setdefault('power_points', {})
     stored[str(brawler)] = stored.get(str(brawler), 0) + amount
+
+
+def cards(player):
+    """Owned star power and gadget cards."""
+    return player.setdefault('cards', [])
+
+
+def maxed(player, brawler):
+    return (brawler in owned(player) and power_level(player, brawler) >= MAX_LEVEL
+            and all(card in cards(player) for card in EXTRA_CARDS.get(brawler, ())))
+
+
+def max_out(player, brawler):
+    """Unlock the brawler at power 9 with all its star powers and gadgets."""
+    if brawler not in owned(player):
+        owned(player).append(brawler)
+    player.setdefault('power_levels', {})[str(brawler)] = MAX_LEVEL
+    stored = player.setdefault('power_points', {})
+    stored[str(brawler)] = max(stored.get(str(brawler), 0), MAX_POWER_POINTS)
+    for card in EXTRA_CARDS.get(brawler, ()):
+        if card not in cards(player):
+            cards(player).append(card)
 
 
 def upgrade(player, brawler):

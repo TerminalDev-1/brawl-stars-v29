@@ -142,6 +142,8 @@ class AccountStore:
             state['brawler_trophies'] = per_brawler
             state['brawler'] = brawler
             state['trophy_animation'] = max(delta, 0)  # Fly-in only for gains.
+            # The home screen fills the trophy bar from the highest trophies it last showed.
+            state.setdefault('trophies_seen', state.get('highest_trophies', old_trophies))
             state['highest_trophies'] = max(state.get('highest_trophies', 0), state['trophies'])
             state['experience'] = old_experience + experience
             state['battles_played'] = state.get('battles_played', 0) + 1

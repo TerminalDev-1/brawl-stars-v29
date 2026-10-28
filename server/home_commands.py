@@ -143,7 +143,11 @@ def apply(player, command, result):
     elif kind == 520:
         table, brawler = fields[0]
         level = brawlers.upgrade(player, brawler) if table == 16 else None
-        if level is None:
+        if level is None and table == 16 and brawlers.maxed(player, brawler):
+            # Already maxed on the server (the free Colette offer); the client
+            # catches up on its next home load. Resending home now would crash it.
+            result.notes.append(f'upgrade ignored brawler={brawler} already max')
+        elif level is None:
             result.notes.append(f'upgrade refused brawler={brawler}')
             result.resync = True
         else:

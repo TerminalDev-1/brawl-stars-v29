@@ -80,24 +80,52 @@ class BrawlPassTests(unittest.TestCase):
 
 
 class ColetteTests(unittest.TestCase):
-    def test_free_colette_offer_stays_up(self):
+    def special(self, p):
+        return next((i for i, o in enumerate(p['offers']['items'])
+                     if o.get('section') == shop.SECTION_SPECIAL), None)
+
+    def test_free_colette_comes_fully_kitted(self):
         p = player()
         shop.daily_offers(p)
-        index = next(i for i, o in enumerate(p['offers']['items']) if o.get('section') == shop.SECTION_SPECIAL)
+        index = self.special(p)
         self.assertEqual(p['offers']['items'][index]['cost'], 0)
         self.assertEqual(shop.buy(p, index), [(trophy_road.ITEM_BRAWLER, 39, 1)])
         self.assertIn(39, brawlers.owned(p))
-        self.assertIsNone(shop.buy(p, index))  # Once per day.
-        # Next login the same day: still listed, now as Colette power points, already claimed.
-        shop.daily_offers(p)
-        offer = p['offers']['items'][index]
-        self.assertEqual((offer['type'], offer['brawler'], offer['cost']), (shop.OFFER_POWER_POINTS, 39, 0))
+        self.assertEqual(brawlers.power_level(p, 39), brawlers.MAX_LEVEL)
+        self.assertEqual(brawlers.points(p, 39), brawlers.MAX_POWER_POINTS)
+        self.assertEqual(sorted(p['cards']), [300, 302])
         self.assertIsNone(shop.buy(p, index))
-        # Next day: claimable again for points.
+        # Same day: still listed as claimed. After the reset there's nothing left to give.
+        shop.daily_offers(p)
+        self.assertEqual(self.special(p), index)
+        self.assertIn(index, p['offers']['bought'])
         p['offers']['day'] = '2000-01-01'
         shop.daily_offers(p)
-        index = next(i for i, o in enumerate(p['offers']['items']) if o.get('section') == shop.SECTION_SPECIAL)
-        self.assertEqual(shop.buy(p, index), [(trophy_road.ITEM_POWER_POINTS, 39, shop.FREE_COLETTE_POINTS)])
+        self.assertIsNone(self.special(p))
+
+    def test_owned_colette_offer_maxes_her(self):
+        p = player(unlocked=[0, 39], power_points={'39': 100}, power_levels={'39': 2})
+        shop.daily_offers(p)
+        offer = p['offers']['items'][self.special(p)]
+        needed = brawlers.MAX_POWER_POINTS - 100
+        self.assertEqual((offer['type'], offer['amount']), (shop.OFFER_POWER_POINTS, needed))
+        result = home_commands.Result()
+        home_commands.apply(p, home_commands.Command(519, [self.special(p)]), result)
+        self.assertTrue(brawlers.maxed(p, 39))
+        self.assertEqual(brawlers.points(p, 39), brawlers.MAX_POWER_POINTS)
+        # The client still shows her at power 1 until its next home load. An
+        # upgrade it sends meanwhile is ignored without a resync or a charge.
+        gold = p['gold']
+        result = home_commands.Result()
+        home_commands.apply(p, home_commands.Command(520, [(16, 39)]), result)
+        self.assertFalse(result.resync)
+        self.assertEqual(p['gold'], gold)
+
+    def test_home_data_lists_her_cards(self):
+        import messages
+        p = player(cards=[300, 302])
+        p['offers'] = {'day': shop.today(), 'items': [], 'bought': []}
+        self.assertIn(bytes([23, 0xac, 0x04]), messages.home_data(p))  # Card 300 (scid 23).
 
     def test_colette_never_drops_from_boxes(self):
         self.assertIn(39, brawlers.BOX_EXCLUDED)
@@ -139,6 +167,13 @@ class TrophyAnimationTests(unittest.TestCase):
             store.begin_battle(p['id'], battle.match_id, 13, battle.started_at)
             state = store.complete_battle(p['id'], battle.match_id, 1, 0, 1)['player']
             self.assertEqual(state['trophy_animation'], 500)
+            old_best = state['trophies_seen']
+            self.assertEqual(state['highest_trophies'], old_best + 500)
+            from protocol import Writer
+            seen = Writer()
+            seen.values(old_best)
+            self.assertIn(bytes(seen.bytes()) + bytes([0, 0]), home_data(state))  # The bar fills from here.
+            state.pop('trophies_seen')
             with_animation = home_data(state)
             state.pop('trophy_animation')
             self.assertEqual(len(with_animation), len(home_data(state)) + 8)  # One int-value record.
