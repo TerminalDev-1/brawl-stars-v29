@@ -27,18 +27,18 @@ class BattleTests(unittest.TestCase):
             battle = BotBattle(player['id'])
             store.begin_battle(player['id'], battle.match_id, 7, battle.started_at)
             reward = store.complete_battle(player['id'], battle.match_id, 0)
-            self.assertEqual(reward['player']['trophies'], 500)
+            self.assertEqual(reward['player']['trophies'], 1000)
             self.assertEqual(reward['player']['experience'], 20)
             self.assertIsNone(store.complete_battle(player['id'], battle.match_id, 0))
             snapshot = json.loads(store.backup_path.read_text())
-            self.assertEqual(snapshot['bot_battles'][0]['trophies_delta'], 500)
+            self.assertEqual(snapshot['bot_battles'][0]['trophies_delta'], 1000)
             recovered_dir = Path(temp) / 'recovered'
             recovered_dir.mkdir()
             shutil.copy(store.backup_path, recovered_dir / 'players.json')
             recovered = AccountStore(recovered_dir)
             restored, _ = recovered.login(player['id'], token)
             self.assertEqual(restored['battles_played'], 1)
-            self.assertEqual(restored['trophies'], 500)
+            self.assertEqual(restored['trophies'], 1000)
             self.assertIsNone(recovered.complete_battle(player['id'], battle.match_id, 0))
 
     def test_loss_and_draw_award_experience_without_trophy_loss(self):
@@ -120,7 +120,7 @@ class BattleTests(unittest.TestCase):
                     with store.connect() as db:
                         state = json.loads(db.execute('SELECT state FROM players').fetchone()[0])
                     self.assertEqual(state['battles_played'], 1)
-                    self.assertEqual(state['trophies'], 500)
+                    self.assertEqual(state['trophies'], 1000)
             finally:
                 server.shutdown()
                 server.server_close()

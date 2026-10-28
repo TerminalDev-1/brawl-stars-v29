@@ -13,8 +13,9 @@ from pathlib import Path
 import brawl_pass
 
 DEFAULT_THEME = 15  # v29: Welcome to Starr Park / Gift Shop.
-SHOWDOWN_TROPHIES = (500, 400, 300, 200, 100, -8, -12, -16, -23, -25)  # by placement 1-10
-WIN_TROPHIES = 500  # Gem Grab win; losses and draws give no trophies.
+# By Showdown placement 1-10: wins scale down from 1000; losses are unchanged.
+SHOWDOWN_TROPHIES = (1000, 800, 600, 400, 200, -8, -12, -16, -23, -25)
+WIN_TROPHIES = 1000  # Gem Grab, Heist and Brawl Ball win; losses and draws give none.
 
 
 class AccountStore:

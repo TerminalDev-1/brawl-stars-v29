@@ -39,9 +39,10 @@ Last updated: 2026-10-28.
   20 experience; losses and draws give 10 experience without a trophy penalty.
 - Leaving early returns home without a reward. Duplicate completed results
   cannot award progression twice. Another battle can be started after returning.
-- Trophy rewards (2026-10-27): a Gem Grab win gives +500 (losses and draws 0).
-  Showdown placements 1-10 give +500, +400, +300, +200, +100, -8, -12, -16, -23,
-  -25. A brawler can't drop below 0 trophies, highest trophies never decrease,
+- Trophy rewards (changed 2026-10-28): a Gem Grab, Heist or Brawl Ball win gives
+  +1000 (losses and draws 0). Showdown placements 1-10 give +1000, +800, +600,
+  +400, +200, -8, -12, -16, -23, -25 (wins doubled from the earlier 500 scale,
+  losses unchanged). A brawler can't drop below 0 trophies, highest trophies never decrease,
   and the trophy fly-in plays only for gains. Verified on the tablet: an 8th
   place showed -16 on the results screen and was saved.
 - Trophy Road rewards can be collected (2026-10-27). The client's claim command
@@ -130,6 +131,14 @@ Last updated: 2026-10-28.
   and raw account payloads are not logged.
 
 ## Verification evidence
+
+Verified on 2026-10-28 for 1000-trophy wins (server only, no new APK):
+
+- All 47 automated server tests passed with the new reward values.
+- At the user's request the account's trophies were reset: total, highest and
+  every brawler's trophies are 0 (Trophy Road claims, brawlers, coins and gems
+  unchanged). The tablet's home screen shows 0 trophies and rank 1. A winning
+  match with the new +1000 was not played on the tablet.
 
 Verified on 2026-10-28 for the four event slots and 5-hour map rotation (server
 only, no new APK):

@@ -166,9 +166,9 @@ class TrophyAnimationTests(unittest.TestCase):
             battle = BotBattle(p['id'])
             store.begin_battle(p['id'], battle.match_id, 13, battle.started_at)
             state = store.complete_battle(p['id'], battle.match_id, 1, 0, 1)['player']
-            self.assertEqual(state['trophy_animation'], 500)
+            self.assertEqual(state['trophy_animation'], 1000)
             old_best = state['trophies_seen']
-            self.assertEqual(state['highest_trophies'], old_best + 500)
+            self.assertEqual(state['highest_trophies'], old_best + 1000)
             from protocol import Writer
             seen = Writer()
             seen.values(old_best)
