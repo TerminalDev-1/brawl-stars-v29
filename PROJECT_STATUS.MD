@@ -133,6 +133,28 @@ Last updated: 2026-10-28.
 
 ## Verification evidence
 
+Verified on 2026-10-28 for /dev commands in team chat (server only, no new APK):
+
+- Team rooms (server/team.py): Create Team Code (14350) opens a one-player
+  team (24124, team code shown), team chat (14359) echoes the message and the
+  server's reply (24131), and Leave (14353) answers 24125.
+- Commands (server/devcommands.py), typed in the team's CHAT tab: /gems N,
+  /coins N, /t N (total trophies), /bt N (selected brawler's trophies),
+  /unlock <brawler|all>, /max [brawler|all] (power 9 plus every released star
+  power and gadget, server/brawlers.py EXTRA_CARDS), /tokens N, /help. Brawler
+  names ignore case and punctuation ("el primo", "mr. p"). Any player can use
+  them; this is a private server.
+- Changes are saved at once and show on the next home load (after a battle or
+  reopening the game). Resending home data mid-session crashed the client in
+  every form tried: after /coins (its coin animation), on a second refresh,
+  after any later team message, and on leaving the team.
+- All 55 automated server tests passed. On the tablet: /gems 777, /coins 7777,
+  /t 1500 and /bt 1500 in one team chat, then leaving the team, kept the game
+  running; after reopening it showed 7777 coins, 777 gems, 1500 trophies and
+  Colette at 1500 (rank 35). /max colette showed Colette at Power 9 with both
+  cards. /unlock and /max all are covered by unit tests only.
+- The home team box shows "+" until the next home load; the team itself works.
+
 Verified on 2026-10-28 for 1000-trophy wins (server only, no new APK):
 
 - All 47 automated server tests passed with the new reward values.

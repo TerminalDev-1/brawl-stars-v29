@@ -11,8 +11,11 @@ from messages import home_data, login_ok
 from battles import BotBattle, battle_result, read_result, start_loading
 from protocol import MAX_PACKET, Reader, Writer, packet, recv_exact
 from storage import AccountStore
+import devcommands
+import events
 import home_commands
 import shop
+import team
 
 ROOT = Path(__file__).resolve().parent.parent
 LOG = logging.getLogger('v29')
@@ -22,6 +25,7 @@ class Client(socketserver.BaseRequestHandler):
     def setup(self):
         self.player = None
         self.battle = None
+        self.room = None  # Team room, for /dev commands in team chat.
         self.session = uuid.uuid4().hex[:8]
         self.request.settimeout(120)
         self.request.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
@@ -123,6 +127,8 @@ class Client(socketserver.BaseRequestHandler):
                     self.home()
                 elif kind == 14102:
                     self.client_commands(payload)
+                elif kind in (team.TEAM_CREATE, team.TEAM_LEAVE, team.TEAM_CHAT):
+                    self.team_message(kind, payload)
                 else:
                     LOG.debug('session=%s UNIMPLEMENTED type=%d', self.session, kind)
         except (ConnectionError, TimeoutError, OSError) as error:
@@ -152,6 +158,29 @@ class Client(socketserver.BaseRequestHandler):
             LOG.debug('session=%s DELIVERY_ACK', self.session)
         elif unknown is not None:
             LOG.debug('session=%s UNIMPLEMENTED command=%d body=%s', self.session, unknown, payload.hex())
+
+    def team_message(self, kind, payload):
+        """Team rooms exist only to give the player a chat for /dev commands."""
+        LOG.debug('session=%s TEAM type=%d body=%s', self.session, kind, payload.hex())
+        if kind == team.TEAM_CREATE:
+            room_type, map_id = team.read_create(payload)
+            self.room = team.Room(room_type, map_id or events.current_maps()[0])
+            self.send(team.TEAM_MESSAGE, team.team_message(self.player, self.room))
+        elif kind == team.TEAM_LEAVE:
+            self.room = None
+            self.send(team.TEAM_LEAVE_OK, team.leave_ok())
+        elif kind == team.TEAM_CHAT and self.room is not None:
+            text = team.read_chat(payload)
+            self.send(team.TEAM_STREAM, team.chat_entry(self.room, self.player['id'], self.player['name'], text))
+            result = devcommands.run(self.player, text)
+            if result is not None:
+                if result.changed:
+                    self.server.store.save(self.player)
+                # No home refresh: resending home data while in a team, or on
+                # leaving it, crashed the client. Changes show on the next
+                # home load (after a battle or reopening the game).
+                LOG.info('session=%s DEV_COMMAND player=%d %r -> %s', self.session, self.player['id'], text, result.reply)
+                self.send(team.TEAM_STREAM, team.chat_entry(self.room, 0, team.SERVER_NAME, result.reply))
 
     def finish(self):
         self.abandon_battle()

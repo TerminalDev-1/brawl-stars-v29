@@ -26,12 +26,41 @@ UPGRADE_GOLD = (20, 35, 75, 140, 290, 480, 800, 1250)
 MAX_POWER_POINTS = sum(UPGRADE_POINTS)
 MAX_LEVEL = len(UPGRADE_POINTS)  # Native numbering: 8 is power 9.
 
-# Star power and gadget cards (cards.csv rows) a fully kitted brawler owns.
+# Star power and gadget cards (cards.csv rows) a fully kitted brawler owns:
+# its released star powers, then its gadget. Cards marked LockedForChronos
+# (unreleased in v29, such as Colette's second star power 301) are left out.
 EXTRA_CARDS = {
-    # Colette: her v29 star power (card 300) and gadget (302). Card 301, her
-    # second star power, is marked unreleased and the client ignores it.
-    39: (300, 302),
+    0: (76, 135, 255), 1: (77, 138, 273), 2: (78, 137, 272), 3: (79, 150, 245),
+    4: (80, 156, 246), 5: (81, 151, 247), 6: (82, 158, 250), 7: (83, 149, 251),
+    8: (84, 136, 249), 9: (85, 155, 258), 10: (86, 140, 264), 11: (87, 154, 265),
+    12: (88, 143, 243), 13: (89, 144, 267), 14: (90, 148, 263), 15: (91, 152, 268),
+    16: (92, 139, 257), 17: (93, 160, 266), 18: (94, 157, 260), 19: (99, 142, 248),
+    20: (104, 153, 261), 21: (109, 159, 252), 22: (114, 161, 253), 23: (119, 141, 276),
+    24: (124, 147, 242), 25: (129, 145, 262), 26: (134, 146, 275), 27: (168, 181, 259),
+    28: (186, 187, 270), 29: (192, 193, 271), 30: (198, 199, 274), 31: (204, 205, 269),
+    32: (210, 211, 254), 34: (222, 223, 256), 35: (228, 229, 277), 36: (234, 235, 278),
+    37: (240, 241, 244), 38: (283, 285), 39: (300, 302),
 }
+
+NAMES = {
+    0: 'Shelly', 1: 'Colt', 2: 'Bull', 3: 'Brock', 4: 'Rico', 5: 'Spike', 6: 'Barley',
+    7: 'Jessie', 8: 'Nita', 9: 'Dynamike', 10: 'El Primo', 11: 'Mortis', 12: 'Crow',
+    13: 'Poco', 14: 'Bo', 15: 'Piper', 16: 'Pam', 17: 'Tara', 18: 'Darryl', 19: 'Penny',
+    20: 'Frank', 21: 'Gene', 22: 'Tick', 23: 'Leon', 24: 'Rosa', 25: 'Carl', 26: 'Bibi',
+    27: '8-Bit', 28: 'Sandy', 29: 'Bea', 30: 'Emz', 31: 'Mr. P', 32: 'Max', 34: 'Jacky',
+    35: 'Gale', 36: 'Nani', 37: 'Sprout', 38: 'Surge', 39: 'Colette',
+}
+
+
+def find(name):
+    """Brawler ID from a name (case, spaces and punctuation ignored) or a number."""
+    key = ''.join(c for c in name.lower() if c.isalnum())
+    if key.isdigit() and int(key) in BRAWLERS:
+        return int(key)
+    for brawler, label in NAMES.items():
+        if ''.join(c for c in label.lower() if c.isalnum()) == key:
+            return brawler
+    return None
 
 
 def owned(player):
