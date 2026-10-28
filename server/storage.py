@@ -124,12 +124,16 @@ class AccountStore:
             state = json.loads(row['state'])
             old_trophies = state['trophies']
             old_experience = state.get('experience', 0)
+            # /setw changes the win reward; Showdown wins scale with it.
+            win_trophies = state.get('win_trophies', WIN_TROPHIES)
             if rank:  # Showdown placement; no trophy loss in bot matches.
                 delta = SHOWDOWN_TROPHIES[rank - 1] if rank <= len(SHOWDOWN_TROPHIES) else 0
+                if delta > 0:
+                    delta = delta * win_trophies // WIN_TROPHIES
                 experience = 20 if rank <= 4 else 10
                 win = rank <= 4
             else:
-                delta = WIN_TROPHIES if result == 0 else 0
+                delta = win_trophies if result == 0 else 0
                 experience = 20 if result == 0 else 10
                 win = result == 0
             tokens = (max(4, 24 - 2 * rank) if rank else 20 if result == 0 else 15 if result == 2 else 10)

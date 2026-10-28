@@ -140,6 +140,9 @@ Verified on 2026-10-28 for /dev commands in team chat (server only, no new APK):
   server's reply (24131), and Leave (14353) answers 24125.
 - Commands (server/devcommands.py), typed in the team's CHAT tab: /gems N,
   /coins N, /t N (total trophies), /bt N (selected brawler's trophies),
+  /setw N (trophies for a 3v3 win, saved on the account; Showdown places 1-5
+  scale with it, so /setw 14 gives 14/11/8/5/2; places 6-10 keep their losses;
+  verified on the tablet and by a battle-reward unit test),
   /unlock <brawler|all>, /max [brawler|all] (power 9 plus every released star
   power and gadget, server/brawlers.py EXTRA_CARDS), /tokens N, /help. Brawler
   names ignore case and punctuation ("el primo", "mr. p"). Any player can use

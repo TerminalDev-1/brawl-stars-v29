@@ -34,6 +34,21 @@ class DevCommandTests(unittest.TestCase):
         self.assertEqual(p['brawler_trophies']['39'], 750)
         self.assertEqual(p['trophies'], 0)  # /bt leaves the total alone.
 
+    def test_setw_changes_win_and_showdown_rewards(self):
+        import tempfile
+        from battles import BotBattle
+        from storage import AccountStore
+        with tempfile.TemporaryDirectory() as temp:
+            store = AccountStore(temp)
+            p, _ = store.login(0, None)
+            devcommands.run(p, '/setw 14')
+            store.save(p)
+            for result, rank, expected in [(0, 0, 14), (1, 1, 14), (2, 2, 11), (6, 6, -8)]:
+                battle = BotBattle(p['id'])
+                store.begin_battle(p['id'], battle.match_id, 13 if rank else 7, battle.started_at)
+                reward = store.complete_battle(p['id'], battle.match_id, result, 0, rank)
+                self.assertEqual(reward['delta'], expected)
+
     def test_unlock_and_max_by_name(self):
         p = player()
         devcommands.run(p, '/unlock el primo')

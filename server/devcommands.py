@@ -4,7 +4,7 @@ from dataclasses import dataclass
 import brawlers
 
 HELP = ('/gems N, /coins N, /t N (total trophies), /bt N (selected brawler trophies), '
-        '/unlock <brawler|all>, /max [brawler|all], /tokens N, /help')
+        '/setw N (trophies per win), /unlock <brawler|all>, /max [brawler|all], /tokens N, /help')
 
 
 @dataclass
@@ -51,6 +51,11 @@ def run(player, text):
         else:
             player.setdefault('brawl_pass', {})['tokens'] = value
         return Result(f'{command.capitalize()} set to {value}. Shows after a battle or reopening the game.', True)
+    if command == 'setw':
+        if value is None:
+            return Result('Usage: /setw N')
+        player['win_trophies'] = value
+        return Result(f'A win now gives {value} trophies (Showdown places 1-5 scale with it).', True)
     if command == 't':
         if value is None:
             return Result('Usage: /t N')
