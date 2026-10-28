@@ -183,6 +183,16 @@ Python server by ADB. Repeat the reverse command after reconnecting ADB. A LAN
 endpoint requires a rebuild with the desired host; this release does not use
 an internet-hosted public backend.
 
+`start_server.bat` does all of this in one step (2026-10-28). It first stops
+any leftover Python server listening on port 9339, then runs the ADB reverse
+and warns if no tablet is connected (plug in USB or turn on Wireless
+debugging), then starts the server. This fixes the tablet hanging on
+"connecting to server": a stale server left bound to 127.0.0.1:9339 took the
+forwarded connection instead of the new one, because Windows prefers the
+specific address over 0.0.0.0. Verified on the tablet: the launcher stopped
+two old servers, the new one logged LOGIN_OK for player 2, and the home screen
+loaded with saved progress.
+
 ## Remaining work and constraints
 
 - Battles use native local bot simulation; Python does not simulate real-time
